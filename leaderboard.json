@@ -1,1 +1,19 @@
-{"players":{},"counted":[],"updated":0}
+{
+ "players": {
+  "pmvenv81h833bcxoh": {
+   "name": "Albert",
+   "wins": 2,
+   "games": 2
+  },
+  "pmvenkg6wv7vl2kjh": {
+   "name": "JeanMi",
+   "wins": 0,
+   "games": 2
+  }
+ },
+ "counted": [
+  "gmveqnlwub0scsw",
+  "gmveqv6iv0xcpw9"
+ ],
+ "updated": 1792404427254
+}
