@@ -380,6 +380,8 @@ body:not(.onmenu) .bgfx{background:
 .panel .shop .hint{font-size:11.5px}
 .btn.backbtn{font-size:16px;font-weight:700;padding:14px 16px;border-radius:12px;font-family:'Bricolage Grotesque','DM Sans',system-ui,sans-serif;letter-spacing:.005em}
 .btn.backbtn:hover{border-color:var(--seg-line);background:color-mix(in srgb,var(--card) 70%,transparent)}
+.endcard.leave{z-index:40}
+.endcard.leave .endbox{max-width:360px}
 </style>
 
 <div class="bgfx" aria-hidden="true"><i class="bw b1"></i><i class="bw b2"></i><i class="bw b3"></i><i class="bw b4"></i></div>
@@ -486,6 +488,16 @@ body:not(.onmenu) .bgfx{background:
         <div class="endsub">Envoie ce lien à ton ami. Il l'ouvre dans son navigateur, sans compte, et rejoint ta partie :</div>
         <div class="share"><input class="shin" type="text" readonly value="" aria-label="Lien de la page à partager"><button class="btn small primary shbtn" type="button">Copier le lien</button></div>
         <div class="endbtns"><button class="btn ghost" id="waitCancel" type="button">Annuler la partie</button></div>
+      </div>
+    </div>
+    <div class="endcard leave" id="leavecard" hidden role="dialog" aria-modal="true" aria-labelledby="leaveTitle">
+      <div class="endbox">
+        <div class="endtitle" id="leaveTitle">Quitter la partie ?</div>
+        <div class="endsub" id="leaveSub"></div>
+        <div class="endbtns">
+          <button class="btn primary" id="leaveGo" type="button">Retourner à l'accueil</button>
+          <button class="btn ghost" id="leaveStay" type="button">Rester</button>
+        </div>
       </div>
     </div>
     <div class="endcard" id="endcard" hidden>
@@ -1254,7 +1266,6 @@ function renderPanel(){
     rb.textContent=resignArmed?"Confirmer l'abandon":'Abandonner'; rb.className='btn danger';
     rb.disabled=!!(o&&(o.me<0||waiting));
   }
-  $('#btnMenu').textContent=menuArmed?'Quitter la partie ?':'Retour au menu';
   renderHist(); renderTray();
   var ec=$('#endcard');
   if(g.over&&!g.endHidden){
@@ -1274,17 +1285,27 @@ $('#btnResign').addEventListener('click',function(){
   var loser=seat(g);
   finish(1-loser,'resign'); render();
 });
-$('#btnMenu').addEventListener('click',function(){
-  var g=G;
-  var risky=g&&!g.over&&!g.online&&g.hist.length>2;
-  if(risky&&!menuArmed){ menuArmed=true; menuTimer=setTimeout(function(){ menuArmed=false; renderPanel(); },3000); renderPanel(); return; }
-  leaveToMenu();
-});
+function leaveMsg(g){
+  var o=g.online;
+  if(o&&o.status==='waiting'&&o.me>=0) return 'La partie en attente sera annulée et ton lien ne fonctionnera plus.';
+  if(o) return 'La partie continue pour ton adversaire. Tu pourras la rouvrir avec le même lien.';
+  return 'La partie en cours sera perdue.';
+}
+function askLeave(){
+  var g=G; if(!g) return;
+  if(g.over){ leaveToMenu(); return; }
+  $('#leaveSub').textContent='Tu retournes à l\'accueil. '+leaveMsg(g);
+  $('#leavecard').hidden=false; $('#leaveStay').focus();
+}
+$('#btnMenu').addEventListener('click',askLeave);
+$('#leaveStay').addEventListener('click',function(){ $('#leavecard').hidden=true; });
+$('#leaveGo').addEventListener('click',function(){ $('#leavecard').hidden=true; leaveToMenu(); });
 $('#endNew').addEventListener('click',newOrLobby);
 $('#endClose').addEventListener('click',function(){ G.endHidden=true; renderPanel(); });
 $('#waitCancel').addEventListener('click',leaveToMenu);
 document.addEventListener('keydown',function(e){
   if(e.target&&e.target.closest&&e.target.closest('input,textarea,select')) return;
+  if(e.key==='Escape'&&!$('#leavecard').hidden){ $('#leavecard').hidden=true; return; }
   if(e.key==='Escape'&&(sel||pryMode)){ sel=null; pryMode=false; if(G){ G.pv=null; render(); } }
 });
 
@@ -1653,6 +1674,7 @@ function pushBonus(g,r){
 }
 function pushOver(g,w,reason){ post(g.online,{k:'over',w:w,reason:reason,p:pid}); }
 function leaveToMenu(){
+  $('#leavecard').hidden=true;
   aiToken++; resetResign();
   var g=G;
   if(g&&g.online){ var o=g.online; if(o.me>=0&&o.status==='waiting'&&o.host===pid) post(o,{k:'cancel',pid:pid}); }
