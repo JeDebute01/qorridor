@@ -211,6 +211,7 @@ input[type=range]{width:100%;accent-color:var(--accent);margin:0}
 @media (max-width:860px){.stage{max-width:none}}
 .dwalls .tw{cursor:pointer;transition:outline-color .12s}
 .tw.sel{outline:2px solid var(--accent);outline-offset:4px}
+.backbtn{width:100%;margin-bottom:10px;justify-content:center}
 </style>
 
 <section class="menu" id="menu">
@@ -314,14 +315,12 @@ input[type=range]{width:100%;accent-color:var(--accent);margin:0}
   </main>
 
   <aside class="panel" aria-label="Panneau de partie">
+    <button class="btn ghost backbtn" id="btnMenu" type="button" title="Retour au menu">Retour au menu</button>
     <section class="card top">
       <div class="tc" id="tcLabel">Temps : 5+3</div>
       <div class="tm" id="modeLabel">Décontracté</div>
       <div class="tn" id="turnLine" aria-live="polite"></div>
       <button class="btn danger" id="btnResign" type="button">Abandonner</button>
-      <div class="row2">
-        <button class="btn ghost small" id="btnMenu" type="button" title="Retour au menu">Menu</button>
-      </div>
     </section>
 
     <section class="card glink" id="gameLink" hidden>
@@ -941,7 +940,7 @@ function renderPanel(){
     rb.textContent=resignArmed?"Confirmer l'abandon":'Abandonner'; rb.className='btn danger';
     rb.disabled=!!(o&&(o.me<0||waiting));
   }
-  $('#btnMenu').textContent=menuArmed?'Quitter ?':'Menu';
+  $('#btnMenu').textContent=menuArmed?'Quitter la partie ?':'Retour au menu';
   renderHist(); renderTray();
   var ec=$('#endcard');
   if(g.over&&!g.endHidden){
