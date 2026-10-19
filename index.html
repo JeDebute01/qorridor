@@ -563,7 +563,6 @@ body:not(.onmenu) .bgfx{background:
         <label class="tg"><span>Coordonnées</span><input type="checkbox" data-ui="coords"></label>
         <label class="tg"><span>Animations</span><input type="checkbox" data-ui="anim"></label>
         <label class="tg"><span>Sons</span><input type="checkbox" data-ui="sound"></label>
-        <label class="tg"><span>Plateau retourné</span><input type="checkbox" data-ui="flip"></label>
         <div class="fld"><span class="fl">Habillage</span>
           <div class="seg" data-key="skin" data-scope="ui">
             <button type="button" data-v="ardoise">Ardoise</button><button type="button" data-v="papier">Papier</button><button type="button" data-v="bois">Bois</button>
@@ -726,8 +725,8 @@ var VARIANT_HINT={
   fog:"Le pion adverse disparaît au-delà de 3 cases et ses coups sont masqués. Contre l'IA ou en ligne."
 };
 var MODE_HINT={
-  casual:"Partie amicale. La boutique de bonus est disponible.",
-  ranked:"Partie sérieuse : aucun coup ne peut être annulé et pas de boutique de bonus."
+  casual:"Astuces et boutique activées",
+  ranked:"Boutique désactivée"
 };
 var LOBBY_TTL=30*60*1000;
 var ui={hints:true,preview:true,path:false,coords:true,flip:false,anim:true,sound:true,skin:'ardoise',drag:false,chat:false};
