@@ -347,6 +347,14 @@ body:not(.onmenu) .bgfx{background:
 .dock .dtxt b{font-family:'Bricolage Grotesque','DM Sans',system-ui,sans-serif;font-size:16px}
 .dwalls .tw{box-shadow:0 2px 8px rgba(0,0,0,.45);transition:transform .12s,outline-color .12s}
 .dwalls .tw:hover:not(.off){transform:translateY(-2px)}
+
+/* Murs éphémères : bulle du nombre de demi-coups restants */
+.wall .wlife{position:absolute;display:grid;place-items:center;box-sizing:border-box;width:3.7cqw;height:3.7cqw;border-radius:50%;
+  background:var(--page);color:var(--text);border:1.5px solid var(--wall);font:700 2.2cqw/1 var(--font-ui);font-variant-numeric:tabular-nums;
+  box-shadow:0 2px 6px rgba(0,0,0,.5)}
+.wall.wh .wlife{right:-1.85cqw;top:50%;transform:translateY(-50%)}
+.wall:not(.wh) .wlife{top:-1.85cqw;left:50%;transform:translateX(-50%)}
+.wall .wlife.low{background:var(--danger);border-color:var(--danger);color:#fff}
 </style>
 
 <div class="bgfx" aria-hidden="true"><i class="bw b1"></i><i class="bw b2"></i><i class="bw b3"></i><i class="bw b4"></i></div>
@@ -903,9 +911,17 @@ function renderWalls(){
     setBox(el,wallBox(w.o,w.x,w.y));
     if(g.variant==='ephemeral'&&w.born!==undefined){
       var left=w.born+g.life-g.ply;
-      el.style.opacity=String(0.4+0.6*Math.min(1,left/g.life));
+      el.style.background='color-mix(in srgb,var(--wall) '+Math.round(40+60*Math.min(1,left/g.life))+'%,transparent)';
       el.classList.toggle('fading',left<=2);
-    } else { el.style.opacity=''; el.classList.remove('fading'); }
+      el.classList.toggle('wh',w.o==='h');
+      var bub=el.querySelector('.wlife');
+      if(!bub){ bub=document.createElement('b'); bub.className='wlife'; el.appendChild(bub); }
+      bub.textContent=Math.max(1,left);
+      bub.classList.toggle('low',left<=2);
+    } else {
+      el.style.background=''; el.classList.remove('fading','wh');
+      var ob=el.querySelector('.wlife'); if(ob) ob.remove();
+    }
   });
   wallEls.forEach(function(el,k){ if(!keep[k]){ el.remove(); wallEls.delete(k); } });
 }
