@@ -494,7 +494,7 @@ body:not(.onmenu) .bgfx{background:
         <p class="hint" id="lbNickMsg"></p>
       </div>
       <div id="lbBody"></div>
-      <p class="hint">Seules les parties en ligne d'au moins 8 coups comptent. Tes résultats sont sauvegardés sur cet appareil et publiés sur le relais public. Un joueur reste visible environ 12 heures après son dernier passage : rouvre la page pour rafraîchir ton score.</p>
+      <p class="hint" id="lbNote"></p>
     </section>
     <section class="mcard" id="onlinePanel" aria-label="Parties en ligne" hidden>
       <h2 class="mh">Jouer avec un ami</h2>
@@ -1515,6 +1515,8 @@ $('#nick').value=sget('qd_name')||'';
 $('#nick').addEventListener('input',function(){ sset('qd_name',$('#nick').value); });
 window.addEventListener('focus',function(){ if(menuTab==='lb'&&!menuEl.hidden) renderLb(); });
 /* ---------- Classement : victoires en ligne ---------- */
+/* Adresse de l'API du classement (Cloudflare Worker + D1). Vide : on retombe sur le relais public ntfy.sh (12 h). */
+var LB_API='';
 var LB_TOPIC='quoridorlb-classement-v1';
 function lbUrl(){ return RELAY+'/'+LB_TOPIC; }
 function nickOk(n){ n=String(n||'').trim(); return n.length>=2&&!/^joueur(\s|$)/i.test(n); }
@@ -1535,9 +1537,36 @@ function recordResult(g){
   done.push(o.gid); sset('qd_counted',JSON.stringify(done.slice(-60)));
   var st=getStats(); st.games++; if(g.over.w===o.me) st.wins++;
   sset('qd_stats',JSON.stringify(st));
-  lbPublish();
+  if(LB_API){
+    var pend=getPending(); pend.push({gid:o.gid,won:g.over.w===o.me?1:0,plies:g.ply}); setPending(pend);
+    flushPending();
+  } else lbPublish();
+}
+function getPending(){ try{ var a=JSON.parse(sget('qd_pending')||'[]'); return Array.isArray(a)?a:[]; }catch(e){ return []; } }
+function setPending(a){ sset('qd_pending',JSON.stringify(a.slice(-30))); }
+var flushing=false;
+async function flushPending(){
+  var name=customName(); if(!LB_API||!name||flushing) return;
+  flushing=true;
+  try{
+    var left=[],list=getPending();
+    for(var i=0;i<list.length;i++){
+      var it=list[i];
+      try{
+        var r=await fetch(LB_API+'/api/result',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({gid:it.gid,pid:pid,name:name,won:it.won,plies:it.plies})});
+        if(!r.ok&&r.status>=500) left.push(it);
+      }catch(e){ left.push(it); }
+    }
+    setPending(left);
+  } finally { flushing=false; }
 }
 async function lbRead(){
+  if(LB_API){
+    var ra=await fetch(LB_API+'/api/leaderboard');
+    if(!ra.ok) throw new Error('HTTP '+ra.status);
+    var jr=await ra.json();
+    return (jr.rows||[]).map(function(x){ return {pid:String(x.pid),name:cleanName(x.name),wins:x.wins|0,games:x.games|0}; });
+  }
   var r=await fetch(lbUrl()+'/json?poll=1&since=all');
   if(!r.ok) throw new Error('HTTP '+r.status);
   var t=await r.text(),best={};
@@ -1560,6 +1589,7 @@ var lbToken=0;
 async function renderLb(){
   var token=++lbToken,box=$('#lbBody'),name=customName(),st=getStats();
   box.textContent='';
+  $('#lbNote').textContent=LB_API?"Seules les parties en ligne d'au moins 8 coups comptent, et une victoire n'est validée que si les deux joueurs envoient le même résultat. Le classement est permanent.":"Seules les parties en ligne d'au moins 8 coups comptent. Tes résultats sont sauvegardés sur cet appareil et publiés sur le relais public. Un joueur reste visible environ 12 heures après son dernier passage : rouvre la page pour rafraîchir ton score.";
   $('#lbNickWrap').hidden=!!name;
   if(!name){
     var p=document.createElement('p'); p.className='hint';
@@ -1571,7 +1601,7 @@ async function renderLb(){
   var ms=document.createElement('span'); ms.textContent=st.wins+' victoire'+(st.wins>1?'s':'')+' sur '+st.games+' partie'+(st.games>1?'s':'')+' en ligne';
   me.appendChild(mn); me.appendChild(ms); box.appendChild(me);
   var ld=document.createElement('p'); ld.className='hint'; ld.textContent='Chargement du classement…'; box.appendChild(ld);
-  await lbPublish();
+  if(LB_API) await flushPending(); else await lbPublish();
   var rows;
   try{ rows=await lbRead(); }
   catch(e){ if(token!==lbToken) return; ld.textContent='Impossible de charger le classement ('+((e&&e.message)||'erreur')+'). Réessaie dans un instant.'; return; }
