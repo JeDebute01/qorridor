@@ -1155,15 +1155,17 @@ $('#joinBtn').addEventListener('click',function(){
 
 /* Échanges avec le relais : un message par événement de la partie. */
 async function postRetry(gid,msg,n){
+  var last='';
   for(var i=0;i<n;i++){
     try{
-      var r=await fetch(msgUrl(gid),{method:'POST',body:JSON.stringify(msg)});
+      var r=await fetch(msgUrl(gid),{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(msg)});
       if(r.ok) return;
-      if(r.status!==429&&r.status<500) throw new Error('http '+r.status);
-    }catch(e){ if(i===n-1) throw e; }
+      last='HTTP '+r.status;
+      if(r.status!==429&&r.status<500) break;
+    }catch(e){ last=(e&&e.message)||'réseau'; }
     await sleep(700*(i+1));
   }
-  throw new Error('relay');
+  throw new Error(last||'relay');
 }
 function post(o,msg){
   o.q=o.q.then(function(){ return postRetry(o.gid,msg,4); }).catch(function(){ toast("Message non envoyé : le relais ne répond pas."); });
@@ -1286,7 +1288,7 @@ async function createOnline(){
   var msg={k:'new',cfg:{n:cfg.n,walls:cfg.walls,time:cfg.time,mode:cfg.mode,variant:cfg.variant,life:cfg.life},seat:seat,pid:pid,name:myName(),t:Date.now()};
   var b=$('#btnStart'); b.disabled=true; b.textContent='Création…';
   try{ await postRetry(gid,msg,3); }
-  catch(e){ updateStartBtn(); notice='Impossible de joindre le relais en ligne (ntfy.sh). Vérifie ta connexion et réessaie.'; renderOnlineMsg(); return; }
+  catch(e){ updateStartBtn(); notice='Impossible de joindre le relais en ligne ntfy.sh ('+((e&&e.message)||'erreur')+'). Réessaie dans un instant.'; renderOnlineMsg(); toast(notice); return; }
   updateStartBtn(); enterOnline(gid,false);
 }
 async function enterOnline(gid,wantJoin){
@@ -1295,7 +1297,7 @@ async function enterOnline(gid,wantJoin){
   var o=newSession(gid); onl=o; remember(gid); setShareUrl(linkFor(gid));
   var msgs;
   try{ msgs=await pollLog(gid); }
-  catch(e){ if(onl===o) onl=null; notice='Impossible de joindre le relais en ligne. Vérifie ta connexion.'; setTab('online'); showMenu(); return; }
+  catch(e){ if(onl===o) onl=null; notice='Impossible de lire la partie sur le relais ntfy.sh ('+((e&&e.message)||'erreur')+').'; setTab('online'); showMenu(); return; }
   if(onl!==o) return;
   msgs.forEach(function(j){ handleRaw(o,j); });
   if(!o.g||o.status==='cancelled'){
