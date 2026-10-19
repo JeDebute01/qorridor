@@ -209,6 +209,8 @@ input[type=range]{width:100%;accent-color:var(--accent);margin:0}
 @media (max-width:560px){.dwalls .tw.h{width:64px}.dwalls .tw.v{height:64px}.dtxt span{display:none}}
 .stage{max-width:max(420px,calc(100vh - 170px))}
 @media (max-width:860px){.stage{max-width:none}}
+.dwalls .tw{cursor:pointer;transition:outline-color .12s}
+.tw.sel{outline:2px solid var(--accent);outline-offset:4px}
 </style>
 
 <section class="menu" id="menu">
@@ -307,7 +309,7 @@ input[type=range]{width:100%;accent-color:var(--accent);margin:0}
         <div class="tw h" id="trayH" title="Barricade horizontale : glisse-la sur le plateau"></div>
         <div class="tw v" id="trayV" title="Barricade verticale : glisse-la sur le plateau"></div>
       </div>
-      <div class="dtxt"><b id="trayLeft"></b><span>Glisse une barricade sur le plateau, ou clique une rainure.</span></div>
+      <div class="dtxt"><b id="trayLeft"></b><span id="trayHint"></span></div>
     </div>
   </main>
 
@@ -528,7 +530,7 @@ var MODE_HINT={
 var LOBBY_TTL=30*60*1000;
 var ui={hints:true,preview:true,path:false,coords:true,flip:false,anim:true,sound:true,skin:'ardoise',drag:false,chat:false};
 var cfg={opp:'medium',side:'blue',time:'5+3',mode:'casual',n:9,walls:10,variant:'classic',life:10};
-var G=null,aiToken=0,resignArmed=false,resignTimer=null,menuArmed=false,menuTimer=null,toastTimer=null,drag=null,menuTab='solo';
+var sel=null,G=null,aiToken=0,resignArmed=false,resignTimer=null,menuArmed=false,menuTimer=null,toastTimer=null,drag=null,menuTab='solo';
 var notice='',onl=null;
 
 var board=$('#board'),appEl=$('.app'),menuEl=$('#menu');
@@ -800,6 +802,12 @@ board.addEventListener('pointerdown',function(e){
   if(!G||(e.pointerType==='mouse'&&e.button!==0)) return;
   ensureAudio();
   if(!myTurn()) return;
+  if(sel&&G.left[G.turn]>0){
+    var hs=locate(e,sel); if(!hs) return;
+    var es=wallError(hs.o,hs.x,hs.y);
+    if(es){ toast(es); return; }
+    var so=sel; sel=null; play({t:'w',o:so,x:hs.x,y:hs.y}); return;
+  }
   var h=locate(e); if(!h) return;
   if(h.kind==='cell'){ if(G.legal.has(h.y*G.n+h.x)) play({t:'m',x:h.x,y:h.y}); return; }
   var err=wallError(h.o,h.x,h.y);
@@ -815,7 +823,7 @@ board.addEventListener('pointerdown',function(e){
 board.addEventListener('pointermove',function(e){
   if(!G||e.pointerType!=='mouse'||drag) return;
   if(!myTurn()||!ui.preview||G.left[G.turn]<=0){ if(G.pv){ G.pv=null; drawPreview(); } return; }
-  var h=locate(e);
+  var h=locate(e,sel||undefined);
   G.pv=(h&&h.kind==='wall')?{o:h.o,x:h.x,y:h.y,err:wallError(h.o,h.x,h.y)}:null;
   drawPreview();
 });
@@ -830,10 +838,15 @@ function startDrag(e,o){
   g.className='ghostwall';
   g.style.width=((o==='h'?2+GAP:GAP)*unit)+'px'; g.style.height=((o==='h'?GAP:2+GAP)*unit)+'px';
   document.body.appendChild(g);
-  drag={o:o,ghost:g}; moveDrag(e);
+  g.style.visibility='hidden';
+  drag={o:o,ghost:g,sx:e.clientX,sy:e.clientY,moved:false}; moveDrag(e);
 }
 function moveDrag(e){
   if(!drag) return;
+  if(!drag.moved){
+    if(Math.abs(e.clientX-drag.sx)+Math.abs(e.clientY-drag.sy)<7) return;
+    drag.moved=true; drag.ghost.style.visibility='';
+  }
   var gw=drag.ghost; gw.style.left=(e.clientX-parseFloat(gw.style.width)/2)+'px'; gw.style.top=(e.clientY-parseFloat(gw.style.height)/2)+'px';
   var h=locate(e,drag.o);
   G.pv=h?{o:h.o,x:h.x,y:h.y,err:wallError(h.o,h.x,h.y)}:null;
@@ -841,10 +854,11 @@ function moveDrag(e){
 }
 function endDrag(e,cancel){
   if(!drag) return;
-  var h=(cancel||!G)?null:locate(e,drag.o),o=drag.o;
+  var h=(cancel||!G)?null:locate(e,drag.o),o=drag.o,clicked=!drag.moved&&!cancel;
   drag.ghost.remove(); drag=null;
   if(!G) return;
   G.pv=null;
+  if(clicked){ sel=(sel===o)?null:o; render(); return; }
   if(h){ var err=wallError(o,h.x,h.y); if(err){ toast(err); drawPreview(); } else { play({t:'w',o:o,x:h.x,y:h.y}); } }
   else drawPreview();
 }
@@ -883,8 +897,12 @@ function renderHist(){
 }
 function renderTray(){
   var g=G,who=seat(g),ok=trayOk();
+  if(!ok) sel=null;
   $('#trayH').classList.toggle('off',!ok); $('#trayV').classList.toggle('off',!ok);
+  $('#trayH').classList.toggle('sel',sel==='h'); $('#trayV').classList.toggle('sel',sel==='v');
+  board.style.cursor=sel?'crosshair':'';
   $('#trayLeft').textContent='Il reste '+g.left[who]+' barricade'+(g.left[who]>1?'s':'');
+  $('#trayHint').textContent=sel?'Clique sur le plateau pour la poser (Échap pour annuler).':'Clique une barricade puis le plateau, ou glisse-la directement.';
 }
 function endText(){
   var g=G,w=g.over.w,l=1-w,r=g.over.reason;
@@ -954,6 +972,7 @@ $('#endClose').addEventListener('click',function(){ G.endHidden=true; renderPane
 $('#waitCancel').addEventListener('click',leaveToMenu);
 document.addEventListener('keydown',function(e){
   if(e.target&&e.target.closest&&e.target.closest('input,textarea,select')) return;
+  if(e.key==='Escape'&&sel){ sel=null; if(G){ G.pv=null; render(); } }
 });
 
 /* ---------- Toast ---------- */
