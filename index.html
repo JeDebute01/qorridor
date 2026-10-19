@@ -299,7 +299,6 @@ input[type=range]{width:100%;accent-color:var(--accent);margin:0}
       <button class="btn danger" id="btnResign" type="button">Abandonner</button>
       <div class="row2">
         <button class="btn ghost small" id="btnUndo" type="button" title="Annuler le dernier coup (Z)">Annuler</button>
-        <button class="btn ghost small" id="btnFlip" type="button" title="Retourner le plateau">Retourner</button>
         <button class="btn ghost small" id="btnMenu" type="button" title="Retour au menu">Menu</button>
       </div>
     </section>
@@ -943,7 +942,6 @@ $('#btnResign').addEventListener('click',function(){
   finish(1-loser,'resign'); render();
 });
 $('#btnUndo').addEventListener('click',undo);
-$('#btnFlip').addEventListener('click',function(){ ui.flip=!ui.flip; buildBoard(); applyUi(); render(); });
 $('#btnMenu').addEventListener('click',function(){
   var g=G;
   var risky=g&&!g.over&&!g.online&&g.hist.length>2;
