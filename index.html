@@ -439,7 +439,7 @@ body:not(.onmenu) .bgfx{background:
         <div class="seg" data-key="variant"><button type="button" data-v="classic">Classique</button><button type="button" data-v="ephemeral">Murs éphémères</button><button type="button" data-v="fog">Brouillard</button></div>
         <p class="hint" id="variantHint"></p>
       </div>
-      <div class="fld"><span class="fl">Boutique de bonus</span>
+      <div class="fld" id="fldShop"><span class="fl">Boutique de bonus</span>
         <div class="seg" data-key="shop"><button type="button" data-v="off">Non</button><button type="button" data-v="on">Oui</button></div>
         <p class="hint" id="shopMenuHint"></p>
       </div>
@@ -726,8 +726,8 @@ var VARIANT_HINT={
   fog:"Le pion adverse disparaît au-delà de 3 cases et ses coups sont masqués. Contre l'IA ou en ligne."
 };
 var MODE_HINT={
-  casual:"Partie amicale.",
-  ranked:"Partie sérieuse : aucun coup ne peut être annulé."
+  casual:"Partie amicale. La boutique de bonus est disponible.",
+  ranked:"Partie sérieuse : aucun coup ne peut être annulé et pas de boutique de bonus."
 };
 var LOBBY_TTL=30*60*1000;
 var ui={hints:true,preview:true,path:false,coords:true,flip:false,anim:true,sound:true,skin:'ardoise',drag:false,chat:false};
@@ -766,7 +766,7 @@ function makeGame(c,force){
     walls:[],ply:0,hist:[],wallCap:c.walls,mode:c.mode,variant:variant,life:c.life,opp:c.opp,human:human,
     tkey:tp.k,base:base,inc:tp.i*1000,clock:[base||Infinity,base||Infinity],running:false,last:0,over:null,
     names:names,chat:[],thinking:false,pv:null,legal:new Set(),endHidden:false,online:null,auth:null,turnStart:0,
-    shop:c.shop==='on',coins:[START_COINS,START_COINS],dbl:[false,false],cloak:[0,0],bought:false};
+    shop:c.shop==='on'&&c.mode!=='ranked',coins:[START_COINS,START_COINS],dbl:[false,false],cloak:[0,0],bought:false};
 }
 function showMenu(){ document.body.classList.add('onmenu'); menuEl.hidden=false; appEl.hidden=true; window.scrollTo(0,0); if(menuTab==='online') renderOnlinePanel(); }
 function showApp(){ document.body.classList.remove('onmenu'); menuEl.hidden=true; appEl.hidden=false; window.scrollTo(0,0); }
@@ -1378,6 +1378,8 @@ function syncCfg(){
   var solo=menuTab==='solo',noHuman=solo&&cfg.opp==='human';
   document.querySelectorAll('.seg[data-key]:not([data-scope])').forEach(function(s){ markSeg(s,cfg[s.dataset.key]); });
   if(noHuman&&cfg.variant==='fog') cfg.variant='classic';
+  if(cfg.mode==='ranked') cfg.shop='off';
+  $('#fldShop').hidden=cfg.mode==='ranked';
   $('#shopMenuHint').textContent=cfg.shop==='on'?"Tu gagnes des pièces à chaque coup et tu achètes des bonus pendant la partie. L'IA n'achète pas.":'';
   $('#fldSide').hidden=noHuman;
   document.querySelector('.seg[data-key="variant"] button[data-v="fog"]').disabled=noHuman;
@@ -1519,7 +1521,7 @@ function ingest(o,m){
     var c=m.cfg||{},n=[5,7,9,11].indexOf(+c.n)>=0?+c.n:9;
     var cf={n:n,walls:clampN((+c.walls)|0||10,2,20),time:TIME_PRESETS.some(function(t){return t.k===c.time;})?c.time:'5+3',
       mode:c.mode==='ranked'?'ranked':'casual',variant:(c.variant==='ephemeral'||c.variant==='fog')?c.variant:'classic',
-      life:clampN((+c.life)|0||10,4,30),shop:c.shop==='on'?'on':'off',opp:'online',side:'red'};
+      life:clampN((+c.life)|0||10,4,30),shop:(c.shop==='on'&&c.mode!=='ranked')?'on':'off',opp:'online',side:'red'};
     var ng=makeGame(cf,{human:-1});
     ng.online=o; ng.auth=[ng.clock[0],ng.clock[1]]; ng.turnStart=performance.now();
     o.g=ng; o.host=String(m.pid||'');
