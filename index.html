@@ -489,7 +489,7 @@ body:not(.onmenu) .bgfx{background:
 
     <section class="mcard lbcard" id="lbPanel" aria-label="Classement" hidden>
       <div class="lbtop"><h2 class="mh">Classement des victoires en ligne</h2><button class="btn small ghost" id="lbRefresh" type="button">Actualiser</button></div>
-      <div class="fld" id="lbNickWrap" hidden><span class="fl">Ton pseudo</span>
+      <div class="fld" id="lbNickWrap" hidden><span class="fl">Pour apparaître au classement, choisis un pseudo</span>
         <div class="share"><input class="shin" id="lbNick" type="text" maxlength="20" placeholder="Choisis ton pseudo" autocomplete="nickname"><button class="btn small primary" id="lbNickBtn" type="button">Valider</button></div>
         <p class="hint" id="lbNickMsg"></p>
       </div>
@@ -1579,17 +1579,14 @@ async function renderLb(){
   box.textContent='';
   $('#lbNote').textContent="Seules les parties en ligne d'au moins 8 coups comptent, et une victoire n'est validée que si les deux joueurs envoient le même résultat. Le classement est permanent et se met à jour environ toutes les 30 minutes.";
   $('#lbNickWrap').hidden=!!name;
-  if(!name){
-    var p=document.createElement('p'); p.className='hint';
-    p.textContent='Le classement est réservé aux joueurs qui ont un pseudo. Choisis le tien pour le voir et y apparaître.';
-    box.appendChild(p); return;
+  if(name){
+    var me=document.createElement('div'); me.className='lbme';
+    var mn=document.createElement('b'); mn.textContent=name;
+    var ms=document.createElement('span'); ms.textContent=st.wins+' victoire'+(st.wins>1?'s':'')+' sur '+st.games+' partie'+(st.games>1?'s':'')+' en ligne';
+    me.appendChild(mn); me.appendChild(ms); box.appendChild(me);
   }
-  var me=document.createElement('div'); me.className='lbme';
-  var mn=document.createElement('b'); mn.textContent=name;
-  var ms=document.createElement('span'); ms.textContent=st.wins+' victoire'+(st.wins>1?'s':'')+' sur '+st.games+' partie'+(st.games>1?'s':'')+' en ligne';
-  me.appendChild(mn); me.appendChild(ms); box.appendChild(me);
   var ld=document.createElement('p'); ld.className='hint'; ld.textContent='Chargement du classement…'; box.appendChild(ld);
-  await flushPending();
+  if(name) await flushPending();
   var rows;
   try{ rows=await lbRead(); }
   catch(e){ if(token!==lbToken) return; ld.textContent='Impossible de charger le classement ('+((e&&e.message)||'erreur')+'). Réessaie dans un instant.'; return; }
