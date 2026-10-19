@@ -351,7 +351,6 @@ input[type=range]{width:100%;accent-color:var(--accent);margin:0}
       <div class="bb" id="dispBody" hidden>
         <label class="tg"><span>Montrer les coups possibles</span><input type="checkbox" data-ui="hints"></label>
         <label class="tg"><span>Aperçu des barricades</span><input type="checkbox" data-ui="preview"></label>
-        <label class="tg"><span>Chemin le plus court</span><input type="checkbox" data-ui="path"></label>
         <label class="tg"><span>Coordonnées</span><input type="checkbox" data-ui="coords"></label>
         <label class="tg"><span>Animations</span><input type="checkbox" data-ui="anim"></label>
         <label class="tg"><span>Sons</span><input type="checkbox" data-ui="sound"></label>
@@ -361,7 +360,7 @@ input[type=range]{width:100%;accent-color:var(--accent);margin:0}
             <button type="button" data-v="ardoise">Ardoise</button><button type="button" data-v="papier">Papier</button><button type="button" data-v="bois">Bois</button>
           </div>
         </div>
-        <p class="hint" id="rankedHint" hidden>En mode classé, le chemin le plus court et l'annulation sont désactivés.</p>
+        <p class="hint" id="rankedHint" hidden>En mode classé, l'annulation est désactivée.</p>
       </div>
     </section>
   </aside>
@@ -519,8 +518,8 @@ var VARIANT_HINT={
   fog:"Le pion adverse disparaît au-delà de 3 cases et ses coups sont masqués. Contre l'IA ou en ligne."
 };
 var MODE_HINT={
-  casual:"Chemin le plus court et aides disponibles. L'annulation existe en solo.",
-  ranked:"Sans annulation ni chemin le plus court."
+  casual:"Aides disponibles. L'annulation existe en solo.",
+  ranked:"Sans annulation."
 };
 var LOBBY_TTL=30*60*1000;
 var ui={hints:true,preview:true,path:false,coords:true,flip:false,anim:true,sound:true,skin:'ardoise',drag:false,chat:false};
@@ -923,7 +922,6 @@ function renderPanel(){
   }
   $('#btnUndo').disabled=!canUndo();
   $('#btnMenu').textContent=menuArmed?'Quitter ?':'Menu';
-  var pathIn=$('input[data-ui="path"]'); pathIn.disabled=g.mode==='ranked';
   $('#rankedHint').hidden=g.mode!=='ranked';
   renderHist(); renderTray();
   var ec=$('#endcard');
