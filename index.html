@@ -1591,23 +1591,59 @@ async function lbRead(){
     var jr=await ra.json();
     return (jr.rows||[]).map(function(x){ return {pid:String(x.pid),name:cleanName(x.name),wins:x.wins|0,games:x.games|0}; });
   }
-  /* Lecture directe sur GitHub (toujours à jour, même si Pages tarde), puis copie publiée avec la page. */
+  /* Base permanente (leaderboard.json, tenue à jour par GitHub Actions) + résultats récents du relais,
+     fusionnés avec les mêmes règles : ainsi une partie qui vient de se terminer apparaît tout de suite. */
   var srcs=['https://raw.githubusercontent.com/JeDebute01/qorridor/main/leaderboard.json',new URL('leaderboard.json',location.href).href],db=null,lastErr='';
   for(var si=0;si<srcs.length&&!db;si++){
     try{ var rj=await fetch(srcs[si]+'?t='+Date.now(),{cache:'no-store'}); if(rj.ok) db=await rj.json(); else lastErr='HTTP '+rj.status; }
     catch(e){ lastErr=(e&&e.message)||'réseau'; }
   }
-  if(!db) throw new Error(lastErr||'erreur');
-  var pl=db.players||{};
+  var lines=null;
+  try{ var rr=await fetch(lbUrl()+'/json?poll=1&since=all'); if(rr.ok) lines=(await rr.text()).split('\n'); else lastErr=lastErr||('HTTP '+rr.status); }
+  catch(e){ lastErr=lastErr||((e&&e.message)||'réseau'); }
+  if(!db&&!lines) throw new Error(lastErr||'erreur');
+  db=db||{players:{},counted:[]};
+  var pl={}; Object.keys(db.players||{}).forEach(function(k){ var x=db.players[k]; pl[k]={name:x.name,wins:x.wins|0,games:x.games|0}; });
+  var counted=new Set(db.counted||[]);
+  if(lines) mergeReports(pl,counted,parseReports(lines));
   return Object.keys(pl).map(function(k){ var x=pl[k]; return {pid:k,name:cleanName(x.name),wins:x.wins|0,games:x.games|0}; })
     .filter(function(x){ return x.games>0&&nickOk(x.name); })
     .sort(function(a,b){ return b.wins-a.wins||a.games-b.games||a.name.localeCompare(b.name); });
+}
+/* Mêmes règles que scripts/update-leaderboard.js : deux résultats concordants par partie. */
+function parseReports(lines){
+  var out=[];
+  lines.forEach(function(raw){
+    raw=raw.trim(); if(!raw) return;
+    var m;
+    try{ var j=JSON.parse(raw); if(j.event!=='message') return; m=JSON.parse(j.message); }catch(e){ return; }
+    if(!m||m.k!=='res') return;
+    var gid=String(m.gid||''),p=String(m.pid||''),name=String(m.name||'').trim().slice(0,20);
+    if(!/^g[a-z0-9]{8,40}$/.test(gid)||!/^p[a-z0-9]{8,40}$/.test(p)||!nickOk(name)) return;
+    if((m.won!==0&&m.won!==1)||!(m.plies>=8)) return;
+    out.push({gid:gid,pid:p,name:name,won:m.won});
+  });
+  return out;
+}
+function mergeReports(pl,counted,reports){
+  var byGame={};
+  reports.forEach(function(r){
+    if(counted.has(r.gid)) return;
+    var g=byGame[r.gid]||(byGame[r.gid]={});
+    if(!g[r.pid]) g[r.pid]=r;
+  });
+  Object.keys(byGame).forEach(function(gid){
+    var ks=Object.keys(byGame[gid]); if(ks.length!==2) return;
+    var a=byGame[gid][ks[0]],b=byGame[gid][ks[1]]; if(a.won===b.won) return;
+    [a,b].forEach(function(r){ var x=pl[r.pid]||(pl[r.pid]={name:r.name,wins:0,games:0}); x.name=r.name; x.wins+=r.won; x.games++; });
+    counted.add(gid);
+  });
 }
 var lbToken=0;
 async function renderLb(){
   var token=++lbToken,box=$('#lbBody'),name=customName(),st=getStats();
   box.textContent='';
-  $('#lbNote').textContent="Seules les parties en ligne d'au moins 8 coups comptent, et une victoire n'est validée que si les deux joueurs envoient le même résultat. Le classement est permanent et se met à jour environ toutes les 30 minutes.";
+  $('#lbNote').textContent="Seules les parties en ligne d'au moins 8 coups comptent, et une victoire n'est validée que si les deux joueurs envoient le même résultat. Le classement est permanent : les parties récentes apparaissent tout de suite et sont ensuite enregistrées dans le dépôt.";
   $('#lbNickWrap').hidden=!!name;
   if(name){
     var me=document.createElement('div'); me.className='lbme';
