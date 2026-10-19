@@ -198,6 +198,17 @@ input[type=range]{width:100%;accent-color:var(--accent);margin:0}
 .glink .share{max-width:none}
 
 [hidden]{display:none !important}
+
+.bwrap{position:relative}
+.dock{display:flex;align-items:center;gap:18px;margin-top:12px;padding:10px 14px;background:var(--panel);border:1px solid var(--panel-line);border-radius:12px}
+.dwalls{display:flex;align-items:center;gap:16px;flex:none;padding:0 4px}
+.dwalls .tw.h{width:84px;height:14px}.dwalls .tw.v{width:14px;height:84px}
+.dtxt{display:flex;flex-direction:column;gap:2px;min-width:0}
+.dtxt b{font-size:14px}
+.dtxt span{color:var(--muted);font-size:12px}
+@media (max-width:560px){.dwalls .tw.h{width:64px}.dwalls .tw.v{height:64px}.dtxt span{display:none}}
+.stage{max-width:max(420px,calc(100vh - 170px))}
+@media (max-width:860px){.stage{max-width:none}}
 </style>
 
 <section class="menu" id="menu">
@@ -268,6 +279,7 @@ input[type=range]{width:100%;accent-color:var(--accent);margin:0}
 
 <div class="app" hidden>
   <main class="stage" id="stage">
+    <div class="bwrap">
     <div class="board" id="board" role="application" aria-label="Plateau de Quoridor"></div>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <div class="endcard" id="waitcard" hidden>
@@ -288,6 +300,14 @@ input[type=range]{width:100%;accent-color:var(--accent);margin:0}
           <button class="btn ghost" id="endClose" type="button">Voir le plateau</button>
         </div>
       </div>
+    </div>
+    </div>
+    <div class="dock" id="dock" aria-label="Tes barricades">
+      <div class="dwalls">
+        <div class="tw h" id="trayH" title="Barricade horizontale : glisse-la sur le plateau"></div>
+        <div class="tw v" id="trayV" title="Barricade verticale : glisse-la sur le plateau"></div>
+      </div>
+      <div class="dtxt"><b id="trayLeft"></b><span>Glisse une barricade sur le plateau, ou clique une rainure.</span></div>
     </div>
   </main>
 
@@ -328,19 +348,6 @@ input[type=range]{width:100%;accent-color:var(--accent);margin:0}
         <div class="msgs" id="msgs"></div>
         <form class="cf" id="chatForm"><input id="chatIn" type="text" maxlength="120" autocomplete="off" placeholder="Écrire un message…"><button class="btn small" type="submit">Envoyer</button></form>
         <div class="quick"><button type="button" data-q="Bien joué !">Bien joué !</button><button type="button" data-q="Beau mur.">Beau mur.</button><button type="button" data-q="GG">GG</button></div>
-      </div>
-    </section>
-
-    <section class="blk">
-      <button class="bh collapse" id="dndHead" type="button" aria-expanded="false" aria-controls="dndBody"><span>Glisser-déposer les barricades</span><span class="chev"></span></button>
-      <div class="bb" id="dndBody" hidden>
-        <label class="tg"><span>Activer le glisser-déposer</span><input type="checkbox" data-ui="drag"></label>
-        <div class="tray">
-          <div class="tw h" id="trayH" title="Barricade horizontale"></div>
-          <div class="tw v" id="trayV" title="Barricade verticale"></div>
-          <div class="tleft" id="trayLeft"></div>
-        </div>
-        <p class="hint">Désactivé : clique sur une rainure entre deux cases pour poser une barricade. Activé : tire une barricade sur le plateau et relâche.</p>
       </div>
     </section>
 
@@ -795,7 +802,6 @@ board.addEventListener('pointerdown',function(e){
   if(!myTurn()) return;
   var h=locate(e); if(!h) return;
   if(h.kind==='cell'){ if(G.legal.has(h.y*G.n+h.x)) play({t:'m',x:h.x,y:h.y}); return; }
-  if(ui.drag){ toast('Glisse une barricade depuis le panneau de droite'); return; }
   var err=wallError(h.o,h.x,h.y);
   if(e.pointerType==='mouse'){
     if(err){ toast(err); return; }
@@ -808,7 +814,7 @@ board.addEventListener('pointerdown',function(e){
 });
 board.addEventListener('pointermove',function(e){
   if(!G||e.pointerType!=='mouse'||drag) return;
-  if(!myTurn()||ui.drag||!ui.preview||G.left[G.turn]<=0){ if(G.pv){ G.pv=null; drawPreview(); } return; }
+  if(!myTurn()||!ui.preview||G.left[G.turn]<=0){ if(G.pv){ G.pv=null; drawPreview(); } return; }
   var h=locate(e);
   G.pv=(h&&h.kind==='wall')?{o:h.o,x:h.x,y:h.y,err:wallError(h.o,h.x,h.y)}:null;
   drawPreview();
@@ -816,7 +822,7 @@ board.addEventListener('pointermove',function(e){
 board.addEventListener('pointerleave',function(e){ if(G&&e.pointerType==='mouse'&&!drag&&G.pv){ G.pv=null; drawPreview(); } });
 
 /* ---------- Glisser-déposer ---------- */
-function trayOk(){ return !!G&&ui.drag&&myTurn()&&G.left[G.turn]>0; }
+function trayOk(){ return !!G&&myTurn()&&G.left[G.turn]>0; }
 function startDrag(e,o){
   if(!trayOk()||(e.pointerType==='mouse'&&e.button!==0)) return;
   e.preventDefault(); ensureAudio();
