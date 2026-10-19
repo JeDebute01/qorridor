@@ -1289,19 +1289,27 @@ async function createOnline(){
   var b=$('#btnStart'); b.disabled=true; b.textContent='Création…';
   try{ await postRetry(gid,msg,3); }
   catch(e){ updateStartBtn(); notice='Impossible de joindre le relais en ligne ntfy.sh ('+((e&&e.message)||'erreur')+'). Réessaie dans un instant.'; renderOnlineMsg(); toast(notice); return; }
-  updateStartBtn(); enterOnline(gid,false);
+  updateStartBtn(); enterOnline(gid,false,msg);
 }
-async function enterOnline(gid,wantJoin){
+async function enterOnline(gid,wantJoin,first){
   if(!/^g[a-z0-9]{8,40}$/.test(gid)) return;
   leaveSubs(); aiToken++; resetResign(); notice='';
   var o=newSession(gid); onl=o; remember(gid); setShareUrl(linkFor(gid));
-  var msgs;
-  try{ msgs=await pollLog(gid); }
-  catch(e){ if(onl===o) onl=null; notice='Impossible de lire la partie sur le relais ntfy.sh ('+((e&&e.message)||'erreur')+').'; setTab('online'); showMenu(); return; }
-  if(onl!==o) return;
-  msgs.forEach(function(j){ handleRaw(o,j); });
+  /* Le créateur connaît déjà sa propre partie : pas besoin d'attendre le relais. */
+  if(first) ingest(o,first);
+  var err='';
+  for(var t=0;t<4&&!o.g;t++){
+    try{
+      var msgs=await pollLog(gid);
+      if(onl!==o) return;
+      msgs.forEach(function(j){ handleRaw(o,j); });
+    }catch(e){ err=(e&&e.message)||'erreur'; }
+    if(!o.g&&t<3) await sleep(900);
+    if(onl!==o) return;
+  }
   if(!o.g||o.status==='cancelled'){
-    onl=null; notice=o.g?'Cette partie a été annulée.':"Partie introuvable : le lien est incorrect ou la partie date de plus de 12 heures.";
+    onl=null;
+    notice=o.g?'Cette partie a été annulée.':(err?'Impossible de lire la partie sur le relais ntfy.sh ('+err+').':"Partie introuvable : le lien est incorrect ou la partie date de plus de 12 heures.");
     setTab('online'); showMenu(); return;
   }
   prepSession(o); o.prevStatus=o.status; o.sfx='';
