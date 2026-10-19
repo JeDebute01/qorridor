@@ -2,7 +2,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
 /* Mise en page : plateau carré à gauche, panneau de partie collant à droite, empilés sous 860px.
    Look d'origine sombre (ardoise), deux autres habillages en option dans le panneau. */
@@ -212,17 +212,121 @@ input[type=range]{width:100%;accent-color:var(--accent);margin:0}
 .dwalls .tw{cursor:pointer;transition:outline-color .12s}
 .tw.sel{outline:2px solid var(--accent);outline-offset:4px}
 .backbtn{width:100%;margin-bottom:10px;justify-content:center}
+
+/* ===== Accueil : habillage ===== */
+.bgfx{display:none;position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;
+  background:
+    radial-gradient(60vmax 40vmax at 8% -5%,color-mix(in srgb,var(--red) 20%,transparent),transparent 70%),
+    radial-gradient(60vmax 45vmax at 100% 105%,color-mix(in srgb,var(--blue) 22%,transparent),transparent 70%),
+    radial-gradient(40vmax 30vmax at 55% 40%,color-mix(in srgb,var(--accent) 6%,transparent),transparent 70%);
+}
+.onmenu .bgfx{display:block}
+.bgfx::before{content:"";position:absolute;inset:0;background:var(--text);opacity:.055;
+  -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72'%3E%3Crect x='6' y='6' width='60' height='60' rx='12'/%3E%3C/svg%3E"),radial-gradient(ellipse 85% 75% at 50% 45%,#000 20%,transparent 85%);
+  -webkit-mask-composite:source-in;
+  mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72'%3E%3Crect x='6' y='6' width='60' height='60' rx='12'/%3E%3C/svg%3E"),radial-gradient(ellipse 85% 75% at 50% 45%,#000 20%,transparent 85%);
+  mask-composite:intersect}
+.bw{position:absolute;background:var(--wall);opacity:.16;border-radius:4px}
+.b1{left:7%;top:62%;width:144px;height:12px}
+.b2{right:9%;top:18%;width:12px;height:144px}
+.b3{left:44%;bottom:7%;width:144px;height:12px;opacity:.1}
+.b4{left:3%;top:14%;width:12px;height:72px;opacity:.1}
+
+.menu{max-width:1080px;gap:26px;padding:clamp(8px,3vw,36px) 0 24px}
+.hero{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);align-items:center;gap:32px;padding:8px 0 4px}
+.htxt{display:flex;flex-direction:column;gap:14px;align-items:flex-start}
+.logo{font-family:'Bricolage Grotesque','DM Sans',system-ui,sans-serif;font-weight:800;font-size:clamp(52px,9.5vw,112px);letter-spacing:-.045em;line-height:.9;margin:0}
+.wallrule{display:block;width:132px;height:12px;border-radius:4px;background:var(--wall);margin:2px 0 4px;box-shadow:0 0 0 1px rgba(255,255,255,.04)}
+.mlead{font-size:clamp(15px,1.6vw,18px);line-height:1.55;max-width:44ch;color:color-mix(in srgb,var(--text) 72%,var(--page))}
+.mfacts{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 0;padding:0}
+.mfacts span{font-size:12.5px;color:var(--muted);border:1px solid var(--panel-line);border-radius:99px;padding:5px 12px;background:color-mix(in srgb,var(--panel) 55%,transparent)}
+.hboard{width:100%;max-width:380px;justify-self:end;filter:drop-shadow(0 24px 50px rgba(0,0,0,.45))}
+.hboard .hcells rect{fill:var(--cell);stroke:var(--cell-line);stroke-width:1}
+.hboard .hcells .gb{fill:var(--goal-b);stroke:var(--goal-b-line)}
+.hboard .hcells .gr{fill:var(--goal-r);stroke:var(--goal-r-line)}
+.hboard .hwall{fill:var(--wall)}
+.hboard .hpath{fill:none;stroke:var(--red);stroke-width:2;stroke-dasharray:2 7;stroke-linecap:round;opacity:.55}
+.hboard .hpawn{stroke:rgba(255,255,255,.25);stroke-width:1.5}
+.hboard .hr{fill:var(--red);filter:drop-shadow(0 0 8px color-mix(in srgb,var(--red) 70%,transparent))}
+.hboard .hs{display:none}
+.hboard .hb{fill:var(--blue);filter:drop-shadow(0 0 8px color-mix(in srgb,var(--blue) 70%,transparent))}
+
+.mtabs{gap:14px}
+.mtab{flex-direction:row;align-items:center;gap:16px;padding:18px 22px;border-radius:18px;background:color-mix(in srgb,var(--panel) 78%,transparent);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);transition:border-color .15s,background .15s,transform .15s}
+.mtab:hover{border-color:var(--seg-line)}
+.mtab:active{transform:scale(.99)}
+.mti{flex:none;width:44px;height:44px;padding:10px;border-radius:12px;box-sizing:border-box;background:var(--card);fill:none;stroke:var(--muted);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.mtab[aria-pressed="true"]{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,var(--panel));box-shadow:0 10px 36px -14px color-mix(in srgb,var(--accent) 65%,transparent)}
+.mtab[aria-pressed="true"] .mti{background:var(--accent);stroke:var(--accent-ink)}
+.mtab span.mtt{color:var(--text)}
+.mtt{display:flex;flex-direction:column;gap:3px;min-width:0}
+.mtt b{font-family:'Bricolage Grotesque','DM Sans',system-ui,sans-serif;font-size:20px;letter-spacing:-.01em}
+.mtt span{font-size:13px;color:var(--muted)}
+
+.mcard{background:color-mix(in srgb,var(--panel) 80%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-radius:20px;padding:22px;gap:18px;box-shadow:0 18px 50px -24px rgba(0,0,0,.6)}
+.mh{font-family:'Bricolage Grotesque','DM Sans',system-ui,sans-serif;text-transform:none;letter-spacing:-.005em;font-size:20px;font-weight:600;color:var(--text)}
+.menu .fl{text-transform:none;letter-spacing:0;font-size:13px;font-weight:500;color:var(--muted)}
+.menu .fl b{color:var(--text);font-weight:600}
+.menu .seg{gap:6px}
+.menu .seg button{padding:9px 10px;font-size:13px;border-radius:11px;background:color-mix(in srgb,var(--card) 55%,transparent);transition:background .12s,border-color .12s,color .12s}
+.menu .seg button:hover:not(:disabled){border-color:var(--seg-line);color:var(--text)}
+.menu .seg button[aria-pressed="true"]{background:color-mix(in srgb,var(--accent) 18%,var(--panel));border-color:var(--accent);color:var(--text);font-weight:600}
+.seg.opps button{padding:14px 14px;border-radius:14px}
+.seg.opps button b{font-family:'Bricolage Grotesque','DM Sans',system-ui,sans-serif;font-size:16px}
+.menu input[type=range]{accent-color:var(--accent)}
+.menu .shin{padding:10px 12px;border-radius:10px;font-size:13px}
+.menu .btn{border-radius:12px}
+.btn.big{padding:15px 18px;font-size:16px;font-family:'Bricolage Grotesque','DM Sans',system-ui,sans-serif;font-weight:700;letter-spacing:.005em;box-shadow:0 12px 30px -12px color-mix(in srgb,var(--accent) 70%,transparent);transition:transform .12s,box-shadow .12s}
+.btn.big:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 16px 36px -12px color-mix(in srgb,var(--accent) 80%,transparent)}
+.btn.big:active:not(:disabled){transform:none}
+.mfoot{margin:6px 0 0;text-align:center;color:var(--muted);font-size:12.5px}
+
+@media (max-width:860px){
+  .hero{grid-template-columns:1fr;gap:20px}
+  .hboard{justify-self:start;max-width:260px}
+}
+@media (max-width:560px){
+  .mtab{padding:14px 16px}
+  .mtt span{font-size:12px}
+  .mfacts span{font-size:12px}
+}
+@media (prefers-reduced-motion:reduce){
+  .hboard .hr:not(.hs){display:none}
+  .hboard .hs{display:block}
+  .btn.big,.mtab{transition:none}
+}
 </style>
 
+<div class="bgfx" aria-hidden="true"><i class="bw b1"></i><i class="bw b2"></i><i class="bw b3"></i><i class="bw b4"></i></div>
 <section class="menu" id="menu">
-  <header class="mhead">
-    <h1 class="logo">Quoridor</h1>
-    <p class="mlead">Traverse le plateau avant ton adversaire. À chaque tour, avance ton pion ou pose une barricade pour le ralentir.</p>
+  <header class="hero">
+    <div class="htxt">
+      <h1 class="logo">Quoridor</h1>
+      <span class="wallrule" aria-hidden="true"></span>
+      <p class="mlead">Traverse le plateau avant ton adversaire. À chaque tour, avance ton pion ou pose une barricade pour le ralentir.</p>
+      <p class="mfacts"><span>9×9 ou plus petit</span><span>IA, deux joueurs ou en ligne</span><span>Sans compte</span></p>
+    </div>
+    <svg class="hboard" viewBox="0 0 260 260" role="img" aria-label="Un plateau de Quoridor : le pion rouge contourne une barricade">
+      <g class="hcells"><rect class="gb" x="14" y="14" width="40" height="40" rx="8"/><rect class="gb" x="62" y="14" width="40" height="40" rx="8"/><rect class="gb" x="110" y="14" width="40" height="40" rx="8"/><rect class="gb" x="158" y="14" width="40" height="40" rx="8"/><rect class="gb" x="206" y="14" width="40" height="40" rx="8"/><rect class="" x="14" y="62" width="40" height="40" rx="8"/><rect class="" x="62" y="62" width="40" height="40" rx="8"/><rect class="" x="110" y="62" width="40" height="40" rx="8"/><rect class="" x="158" y="62" width="40" height="40" rx="8"/><rect class="" x="206" y="62" width="40" height="40" rx="8"/><rect class="" x="14" y="110" width="40" height="40" rx="8"/><rect class="" x="62" y="110" width="40" height="40" rx="8"/><rect class="" x="110" y="110" width="40" height="40" rx="8"/><rect class="" x="158" y="110" width="40" height="40" rx="8"/><rect class="" x="206" y="110" width="40" height="40" rx="8"/><rect class="" x="14" y="158" width="40" height="40" rx="8"/><rect class="" x="62" y="158" width="40" height="40" rx="8"/><rect class="" x="110" y="158" width="40" height="40" rx="8"/><rect class="" x="158" y="158" width="40" height="40" rx="8"/><rect class="" x="206" y="158" width="40" height="40" rx="8"/><rect class="gr" x="14" y="206" width="40" height="40" rx="8"/><rect class="gr" x="62" y="206" width="40" height="40" rx="8"/><rect class="gr" x="110" y="206" width="40" height="40" rx="8"/><rect class="gr" x="158" y="206" width="40" height="40" rx="8"/><rect class="gr" x="206" y="206" width="40" height="40" rx="8"/></g>
+      <path class="hpath" d="M130 34 L130 82 L178 82 L178 226"/>
+      <rect class="hwall" x="62" y="102" width="88" height="8" rx="3"/>
+      <rect class="hwall" x="198" y="14" width="8" height="88" rx="3"/>
+      <rect class="hwall" x="14" y="198" width="88" height="8" rx="3"/>
+      <circle class="hpawn hr hs" cx="178" cy="226" r="13"/>
+      <circle class="hpawn hb" cx="130" cy="226" r="13"/>
+      <circle class="hpawn hr" cx="0" cy="0" r="13"><animateMotion dur="3.4s" begin="0.9s" fill="freeze" calcMode="paced" path="M130 34 L130 82 L178 82 L178 226"/></circle>
+    </svg>
   </header>
 
   <div class="mtabs">
-    <button class="mtab" type="button" data-tab="solo" aria-pressed="true"><b>Partie solo</b><span>Contre l'IA ou à deux sur le même écran</span></button>
-    <button class="mtab" type="button" data-tab="online" aria-pressed="false"><b>Partie en ligne</b><span>Crée un défi ou rejoins un autre joueur</span></button>
+    <button class="mtab" type="button" data-tab="solo" aria-pressed="true">
+      <svg class="mti" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="10" rx="3"/><path d="M9 9h.01M15 9h.01M8 18h8M12 14v4"/></svg>
+      <span class="mtt"><b>Partie solo</b><span>Contre l'IA ou à deux sur le même écran</span></span>
+    </button>
+    <button class="mtab" type="button" data-tab="online" aria-pressed="false">
+      <svg class="mti" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="9" r="3"/><circle cx="17" cy="10" r="2.5"/><path d="M3 19c.6-3 2.6-4.5 5-4.5s4.4 1.500 5 4.500M15 15.200c2.200-.4 4.600.7 5.500 3.800"/></svg>
+      <span class="mtt"><b>Partie en ligne</b><span>Crée une partie et envoie le lien à un ami</span></span>
+    </button>
   </div>
 
   <div class="mgrid">
@@ -278,6 +382,7 @@ input[type=range]{width:100%;accent-color:var(--accent);margin:0}
       </div>
     </section>
   </div>
+  <p class="mfoot">Les parties en ligne passent par un relais public et durent environ 12 heures. Aucun compte requis.</p>
 </section>
 
 <div class="app" hidden>
@@ -562,8 +667,8 @@ function makeGame(c,force){
     tkey:tp.k,base:base,inc:tp.i*1000,clock:[base||Infinity,base||Infinity],running:false,last:0,over:null,
     names:names,chat:[],thinking:false,pv:null,legal:new Set(),endHidden:false,online:null,auth:null,turnStart:0};
 }
-function showMenu(){ menuEl.hidden=false; appEl.hidden=true; window.scrollTo(0,0); if(menuTab==='online') renderOnlinePanel(); }
-function showApp(){ menuEl.hidden=true; appEl.hidden=false; window.scrollTo(0,0); }
+function showMenu(){ document.body.classList.add('onmenu'); menuEl.hidden=false; appEl.hidden=true; window.scrollTo(0,0); if(menuTab==='online') renderOnlinePanel(); }
+function showApp(){ document.body.classList.remove('onmenu'); menuEl.hidden=true; appEl.hidden=false; window.scrollTo(0,0); }
 function enterApp(){ showApp(); buildBoard(); renderChat(); applyUi(); render(); maybeAI(); }
 function startSolo(){
   ensureAudio(); aiToken++; resetResign(); leaveSubs();
