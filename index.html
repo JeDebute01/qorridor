@@ -262,7 +262,6 @@ input[type=range]{width:100%;accent-color:var(--accent);margin:0}
       <div class="fld"><span class="fl">Rejoindre avec un lien</span>
         <div class="share"><input class="shin" id="joinIn" type="text" placeholder="Colle le lien de la partie"><button class="btn small primary" id="joinBtn" type="button">Rejoindre</button></div>
       </div>
-      <div class="fld"><span class="fl">Parties récentes</span><div class="lobby" id="recentList"></div></div>
     </section>
   </div>
 </section>
@@ -1127,24 +1126,7 @@ function remember(gid){
 function renderOnlineMsg(){
   $('#onlineMsg').textContent=notice||"Les parties passent par le relais public ntfy.sh : aucun compte n'est nécessaire et un lien reste valable 12 heures.";
 }
-function renderOnlinePanel(){
-  renderOnlineMsg();
-  var box=$('#recentList'); box.textContent='';
-  var a=recents();
-  if(!a.length){ var em=document.createElement('div'); em.className='lempty'; em.textContent='Aucune partie récente.'; box.appendChild(em); return; }
-  a.forEach(function(r){
-    var row=document.createElement('div'); row.className='lrow';
-    var lt=document.createElement('div'); lt.className='lt';
-    var ln=document.createElement('div'); ln.className='ln'; ln.textContent='Partie …'+r.g.slice(-5);
-    var ld=document.createElement('div'); ld.className='ld'; ld.textContent='Il y a '+Math.max(1,Math.round((Date.now()-r.t)/60000))+' min';
-    var b=document.createElement('button'); b.type='button'; b.className='btn small primary'; b.textContent='Ouvrir'; b.dataset.g=r.g;
-    lt.appendChild(ln); lt.appendChild(ld); row.appendChild(lt); row.appendChild(b); box.appendChild(row);
-  });
-}
-$('#recentList').addEventListener('click',function(e){
-  var b=e.target.closest('button[data-g]'); if(!b) return;
-  ensureAudio(); enterOnline(b.dataset.g,false);
-});
+function renderOnlinePanel(){ renderOnlineMsg(); }
 $('#nick').value=sget('qd_name')||'';
 $('#nick').addEventListener('input',function(){ sset('qd_name',$('#nick').value); });
 $('#joinBtn').addEventListener('click',function(){
