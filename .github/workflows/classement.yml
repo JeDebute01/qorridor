@@ -1,0 +1,29 @@
+name: Mise à jour du classement
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: classement
+  cancel-in-progress: false
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Lire les résultats et mettre à jour leaderboard.json
+        run: node scripts/update-leaderboard.js
+      - name: Enregistrer
+        run: |
+          if [ -n "$(git status --porcelain leaderboard.json)" ]; then
+            git config user.name "classement-bot"
+            git config user.email "classement-bot@users.noreply.github.com"
+            git add leaderboard.json
+            git commit -m "Classement mis à jour"
+            git push
+          fi
