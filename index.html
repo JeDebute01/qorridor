@@ -382,6 +382,25 @@ body:not(.onmenu) .bgfx{background:
 .btn.backbtn:hover{border-color:var(--seg-line);background:color-mix(in srgb,var(--card) 70%,transparent)}
 .endcard.leave{z-index:40}
 .endcard.leave .endbox{max-width:360px}
+
+/* Classement */
+.mtabs{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (max-width:900px){.mtabs{grid-template-columns:1fr}}
+.lbcard{grid-column:1/-1}
+.lbtop{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.lbme{display:flex;flex-direction:column;gap:3px;padding:14px 16px;border-radius:14px;background:color-mix(in srgb,var(--accent) 14%,var(--card));border:1px solid color-mix(in srgb,var(--accent) 45%,transparent)}
+.lbme b{font-family:'Bricolage Grotesque','DM Sans',system-ui,sans-serif;font-size:20px}
+.lbme span{color:var(--muted);font-size:13px}
+.lbtable{display:flex;flex-direction:column;gap:4px}
+.lbrow{display:grid;grid-template-columns:44px minmax(0,1fr) 90px 80px 80px;gap:8px;align-items:center;padding:10px 14px;border-radius:12px;background:color-mix(in srgb,var(--card) 70%,transparent)}
+.lbrow span:nth-child(n+3){text-align:right;font-variant-numeric:tabular-nums}
+.lbrow span:nth-child(2){overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.lbhead{background:none;color:var(--muted);font-size:12.5px;padding-top:2px;padding-bottom:2px}
+.lbhead span{font-weight:500 !important}
+.lbrow.me{border:1px solid var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--card))}
+.lbrow .rk{font-family:'Bricolage Grotesque','DM Sans',system-ui,sans-serif;font-weight:800;font-size:16px;color:var(--muted)}
+.lbrow:nth-child(2) .rk{color:#e8a92a}.lbrow:nth-child(3) .rk{color:#c0c4cc}.lbrow:nth-child(4) .rk{color:#cd8b5a}
+@media (max-width:560px){.lbrow{grid-template-columns:34px minmax(0,1fr) 60px 56px;gap:6px;padding:9px 10px}.lbrow span:nth-child(5){display:none}}
 </style>
 
 <div class="bgfx" aria-hidden="true"><i class="bw b1"></i><i class="bw b2"></i><i class="bw b3"></i><i class="bw b4"></i></div>
@@ -401,7 +420,7 @@ body:not(.onmenu) .bgfx{background:
       <rect class="hwall" x="14" y="198" width="88" height="8" rx="3"/>
       <circle class="hpawn hr hs" cx="178" cy="226" r="13"/>
       <circle class="hpawn hb" cx="130" cy="226" r="13"/>
-      <circle class="hpawn hr" cx="0" cy="0" r="13"><animateMotion dur="3.4s" begin="0.9s" fill="freeze" calcMode="paced" path="M130 34 L130 82 L178 82 L178 226"/></circle>
+      <circle class="hpawn hr" cx="0" cy="0" r="13" opacity="0"><set attributeName="opacity" to="1" begin="0.9s" fill="freeze"/><animateMotion dur="3.4s" begin="0.9s" fill="freeze" calcMode="paced" path="M130 34 L130 82 L178 82 L178 226"/></circle>
     </svg>
   </header>
 
@@ -414,10 +433,14 @@ body:not(.onmenu) .bgfx{background:
       <svg class="mti" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="9" r="3"/><circle cx="17" cy="10" r="2.5"/><path d="M3 19c.6-3 2.6-4.5 5-4.5s4.4 1.500 5 4.500M15 15.200c2.200-.4 4.600.7 5.500 3.800"/></svg>
       <span class="mtt"><b>Partie en ligne</b><span>Crée une partie et envoie le lien à un ami</span></span>
     </button>
+    <button class="mtab" type="button" data-tab="lb" aria-pressed="false">
+      <svg class="mti" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0V4zM8 6H5v1a3 3 0 0 0 3 3M16 6h3v1a3 3 0 0 1-3 3M12 13v4M8 20h8M10 17h4"/></svg>
+      <span class="mtt"><b>Classement</b><span>Les joueurs qui gagnent le plus en ligne</span></span>
+    </button>
   </div>
 
   <div class="mgrid">
-    <section class="mcard" aria-label="Réglages de la partie">
+    <section class="mcard" id="cfgCard" aria-label="Réglages de la partie">
       <h2 class="mh">Réglages de la partie</h2>
       <div class="fld" id="fldSide"><span class="fl">Ta couleur</span>
         <div class="seg" data-key="side">
@@ -464,6 +487,15 @@ body:not(.onmenu) .bgfx{background:
       <button class="btn ghost" id="btnExample" type="button">Ouvrir la position d'exemple</button>
     </section>
 
+    <section class="mcard lbcard" id="lbPanel" aria-label="Classement" hidden>
+      <div class="lbtop"><h2 class="mh">Classement des victoires en ligne</h2><button class="btn small ghost" id="lbRefresh" type="button">Actualiser</button></div>
+      <div class="fld" id="lbNickWrap" hidden><span class="fl">Ton pseudo</span>
+        <div class="share"><input class="shin" id="lbNick" type="text" maxlength="20" placeholder="Choisis ton pseudo" autocomplete="nickname"><button class="btn small primary" id="lbNickBtn" type="button">Valider</button></div>
+        <p class="hint" id="lbNickMsg"></p>
+      </div>
+      <div id="lbBody"></div>
+      <p class="hint">Seules les parties en ligne d'au moins 8 coups comptent. Tes résultats sont sauvegardés sur cet appareil et publiés sur le relais public. Un joueur reste visible environ 12 heures après son dernier passage : rouvre la page pour rafraîchir ton score.</p>
+    </section>
     <section class="mcard" id="onlinePanel" aria-label="Parties en ligne" hidden>
       <h2 class="mh">Jouer avec un ami</h2>
       <p class="hint" id="onlineMsg"></p>
@@ -1044,6 +1076,7 @@ function drawPreview(){
 }
 function render(){
   var g=G,n=g.n;
+  if(g.over&&g.online&&!g.counted){ g.counted=true; recordResult(g); }
   g.legal=new Set();
   if(myTurn()){ moveSet(g,g.turn).forEach(function(m){ g.legal.add(m[1]*n+m[0]); }); }
   for(var i=0;i<cells.length;i++) cells[i].classList.toggle('legal',ui.hints&&g.legal.has(i));
@@ -1413,8 +1446,11 @@ function setTab(t){
   document.querySelectorAll('.mtab').forEach(function(b){ b.setAttribute('aria-pressed',String(b.dataset.tab===t)); });
   $('#soloPanel').hidden=t!=='solo';
   $('#onlinePanel').hidden=t!=='online';
+  $('#lbPanel').hidden=t!=='lb';
+  $('#cfgCard').hidden=t==='lb';
   syncCfg();
   if(t==='online') renderOnlinePanel();
+  if(t==='lb') renderLb();
 }
 document.querySelectorAll('.mtab').forEach(function(b){ b.addEventListener('click',function(){ setTab(b.dataset.tab); }); });
 document.addEventListener('click',function(e){
@@ -1477,6 +1513,90 @@ function renderOnlineMsg(){
 function renderOnlinePanel(){ renderOnlineMsg(); }
 $('#nick').value=sget('qd_name')||'';
 $('#nick').addEventListener('input',function(){ sset('qd_name',$('#nick').value); });
+window.addEventListener('focus',function(){ if(menuTab==='lb'&&!menuEl.hidden) renderLb(); });
+/* ---------- Classement : victoires en ligne ---------- */
+var LB_TOPIC='quoridorlb-classement-v1';
+function lbUrl(){ return RELAY+'/'+LB_TOPIC; }
+function nickOk(n){ n=String(n||'').trim(); return n.length>=2&&!/^joueur(\s|$)/i.test(n); }
+function customName(){ var n=(sget('qd_name')||'').trim().slice(0,20); return nickOk(n)?n:''; }
+function getStats(){
+  try{ var s=JSON.parse(sget('qd_stats')||'{}'); return {wins:Math.max(0,s.wins|0),games:Math.max(0,s.games|0)}; }catch(e){ return {wins:0,games:0}; }
+}
+function lbPublish(){
+  var name=customName(),st=getStats();
+  if(!name||st.games<1) return Promise.resolve(false);
+  return fetch(lbUrl(),{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({k:'stat',pid:pid,name:name,wins:st.wins,games:st.games,t:Date.now()})})
+    .then(function(r){ return r.ok; }).catch(function(){ return false; });
+}
+function recordResult(g){
+  var o=g.online; if(!o||o.me<0||!g.over||g.ply<8) return;
+  var done; try{ done=JSON.parse(sget('qd_counted')||'[]'); }catch(e){ done=[]; }
+  if(done.indexOf(o.gid)>=0) return;
+  done.push(o.gid); sset('qd_counted',JSON.stringify(done.slice(-60)));
+  var st=getStats(); st.games++; if(g.over.w===o.me) st.wins++;
+  sset('qd_stats',JSON.stringify(st));
+  lbPublish();
+}
+async function lbRead(){
+  var r=await fetch(lbUrl()+'/json?poll=1&since=all');
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  var t=await r.text(),best={};
+  t.split('\n').forEach(function(l){
+    l=l.trim(); if(!l) return;
+    try{
+      var j=JSON.parse(l); if(j.event!=='message') return;
+      var m=JSON.parse(j.message);
+      if(!m||m.k!=='stat'||typeof m.pid!=='string'||m.pid.length>40) return;
+      var w=m.wins|0,gm=m.games|0,name=cleanName(m.name);
+      if(w<0||gm<w||gm>99999||!nickOk(name)) return;
+      var tt=+m.t||0,c=best[m.pid];
+      if(!c||tt>c.t) best[m.pid]={pid:m.pid,name:name,wins:w,games:gm,t:tt};
+    }catch(e){}
+  });
+  return Object.keys(best).map(function(k){ return best[k]; })
+    .sort(function(a,b){ return b.wins-a.wins||a.games-b.games||a.name.localeCompare(b.name); });
+}
+var lbToken=0;
+async function renderLb(){
+  var token=++lbToken,box=$('#lbBody'),name=customName(),st=getStats();
+  box.textContent='';
+  $('#lbNickWrap').hidden=!!name;
+  if(!name){
+    var p=document.createElement('p'); p.className='hint';
+    p.textContent='Le classement est réservé aux joueurs qui ont un pseudo. Choisis le tien pour le voir et y apparaître.';
+    box.appendChild(p); return;
+  }
+  var me=document.createElement('div'); me.className='lbme';
+  var mn=document.createElement('b'); mn.textContent=name;
+  var ms=document.createElement('span'); ms.textContent=st.wins+' victoire'+(st.wins>1?'s':'')+' sur '+st.games+' partie'+(st.games>1?'s':'')+' en ligne';
+  me.appendChild(mn); me.appendChild(ms); box.appendChild(me);
+  var ld=document.createElement('p'); ld.className='hint'; ld.textContent='Chargement du classement…'; box.appendChild(ld);
+  await lbPublish();
+  var rows;
+  try{ rows=await lbRead(); }
+  catch(e){ if(token!==lbToken) return; ld.textContent='Impossible de charger le classement ('+((e&&e.message)||'erreur')+'). Réessaie dans un instant.'; return; }
+  if(token!==lbToken) return;
+  ld.remove();
+  if(!rows.length){ var em=document.createElement('div'); em.className='lempty'; em.textContent='Personne au classement pour le moment. Gagne une partie en ligne pour y entrer.'; box.appendChild(em); return; }
+  var tb=document.createElement('div'); tb.className='lbtable';
+  var hd=document.createElement('div'); hd.className='lbrow lbhead';
+  ['#','Joueur','Victoires','Parties','Réussite'].forEach(function(h){ var c=document.createElement('span'); c.textContent=h; hd.appendChild(c); });
+  tb.appendChild(hd);
+  rows.slice(0,50).forEach(function(r,i){
+    var row=document.createElement('div'); row.className='lbrow'+(r.pid===pid?' me':'');
+    var vals=[String(i+1),r.name,String(r.wins),String(r.games),r.games?Math.round(100*r.wins/r.games)+' %':'–'];
+    vals.forEach(function(v,k){ var c=document.createElement('span'); c.textContent=v; if(k===0) c.className='rk'; row.appendChild(c); });
+    tb.appendChild(row);
+  });
+  box.appendChild(tb);
+}
+$('#lbNickBtn').addEventListener('click',function(){
+  var v=($('#lbNick').value||'').trim().slice(0,20);
+  if(!nickOk(v)){ $('#lbNickMsg').textContent='Choisis un pseudo d\'au moins 2 caractères (pas « Joueur »).'; return; }
+  $('#lbNickMsg').textContent=''; sset('qd_name',v); $('#nick').value=v; renderLb();
+});
+$('#lbNick').addEventListener('keydown',function(e){ if(e.key==='Enter') $('#lbNickBtn').click(); });
+$('#lbRefresh').addEventListener('click',renderLb);
 $('#joinBtn').addEventListener('click',function(){
   var m=/(g[a-z0-9]{8,40})\s*$/.exec(($('#joinIn').value||'').trim().toLowerCase());
   if(!m){ notice="Colle le lien complet de la partie que ton ami t'a envoyé."; renderOnlineMsg(); return; }
