@@ -298,7 +298,6 @@ input[type=range]{width:100%;accent-color:var(--accent);margin:0}
       <div class="tn" id="turnLine" aria-live="polite"></div>
       <button class="btn danger" id="btnResign" type="button">Abandonner</button>
       <div class="row2">
-        <button class="btn ghost small" id="btnUndo" type="button" title="Annuler le dernier coup (Z)">Annuler</button>
         <button class="btn ghost small" id="btnMenu" type="button" title="Retour au menu">Menu</button>
       </div>
     </section>
@@ -359,7 +358,6 @@ input[type=range]{width:100%;accent-color:var(--accent);margin:0}
             <button type="button" data-v="ardoise">Ardoise</button><button type="button" data-v="papier">Papier</button><button type="button" data-v="bois">Bois</button>
           </div>
         </div>
-        <p class="hint" id="rankedHint" hidden>En mode classé, l'annulation est désactivée.</p>
       </div>
     </section>
   </aside>
@@ -517,8 +515,8 @@ var VARIANT_HINT={
   fog:"Le pion adverse disparaît au-delà de 3 cases et ses coups sont masqués. Contre l'IA ou en ligne."
 };
 var MODE_HINT={
-  casual:"Aides disponibles. L'annulation existe en solo.",
-  ranked:"Sans annulation."
+  casual:"Partie amicale.",
+  ranked:"Partie sérieuse : aucun coup ne peut être annulé."
 };
 var LOBBY_TTL=30*60*1000;
 var ui={hints:true,preview:true,path:false,coords:true,flip:false,anim:true,sound:true,skin:'ardoise',drag:false,chat:false};
@@ -919,9 +917,7 @@ function renderPanel(){
     rb.textContent=resignArmed?"Confirmer l'abandon":'Abandonner'; rb.className='btn danger';
     rb.disabled=!!(o&&(o.me<0||waiting));
   }
-  $('#btnUndo').disabled=!canUndo();
   $('#btnMenu').textContent=menuArmed?'Quitter ?':'Menu';
-  $('#rankedHint').hidden=g.mode!=='ranked';
   renderHist(); renderTray();
   var ec=$('#endcard');
   if(g.over&&!g.endHidden){
@@ -941,7 +937,6 @@ $('#btnResign').addEventListener('click',function(){
   var loser=seat(g);
   finish(1-loser,'resign'); render();
 });
-$('#btnUndo').addEventListener('click',undo);
 $('#btnMenu').addEventListener('click',function(){
   var g=G;
   var risky=g&&!g.over&&!g.online&&g.hist.length>2;
@@ -953,7 +948,6 @@ $('#endClose').addEventListener('click',function(){ G.endHidden=true; renderPane
 $('#waitCancel').addEventListener('click',leaveToMenu);
 document.addEventListener('keydown',function(e){
   if(e.target&&e.target.closest&&e.target.closest('input,textarea,select')) return;
-  if((e.key==='z'||e.key==='Z')&&!e.ctrlKey&&!e.metaKey&&G) undo();
 });
 
 /* ---------- Toast ---------- */
