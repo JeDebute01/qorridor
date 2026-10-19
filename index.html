@@ -538,10 +538,6 @@ body:not(.onmenu) .bgfx{background:
 
     <section class="blk">
       <div class="bh"><span>Historique des coups</span>
-        <span class="icons">
-          <button class="ico" id="icoGear" type="button" title="Affichage et aides" aria-label="Affichage et aides"></button>
-          <button class="ico" id="icoSnd" type="button" title="Sons" aria-label="Activer ou couper les sons"></button>
-        </span>
       </div>
       <div class="hist" id="hist"></div>
     </section>
@@ -1361,7 +1357,6 @@ function applyUi(){
   board.classList.toggle('noanim',!ui.anim);
   document.querySelectorAll('input[data-ui]').forEach(function(i){ i.checked=!!ui[i.dataset.ui]; });
   document.querySelectorAll('.seg[data-scope="ui"]').forEach(function(s){ markSeg(s,ui[s.dataset.key]); });
-  $('#icoSnd').innerHTML=ico(ui.sound?'snd':'sndoff');
   $('#chatIc').innerHTML=ico(ui.chat?'eye':'eyeoff');
   $('#chatBox').hidden=!ui.chat;
 }
@@ -1418,16 +1413,12 @@ document.querySelectorAll('input[data-ui]').forEach(function(i){
     applyUi(); if(G) render();
   });
 });
-$('#icoSnd').addEventListener('click',function(){ ui.sound=!ui.sound; if(ui.sound) ensureAudio(); applyUi(); });
 function setOpen(head,open){
   var body=document.getElementById(head.getAttribute('aria-controls'));
   head.setAttribute('aria-expanded',String(open)); body.hidden=!open;
 }
 document.querySelectorAll('.collapse[aria-controls]').forEach(function(h){
   h.addEventListener('click',function(){ setOpen(h,h.getAttribute('aria-expanded')!=='true'); });
-});
-$('#icoGear').addEventListener('click',function(){
-  var h=$('#dispHead'); setOpen(h,true); h.scrollIntoView({block:'nearest',behavior:'smooth'});
 });
 document.querySelectorAll('#shop .bonus').forEach(function(b){ b.addEventListener('click',function(){ ensureAudio(); buyClick(b.dataset.k); }); });
 $('#btnStart').addEventListener('click',function(){ if(menuTab==='solo') startSolo(); else createOnline(); });
@@ -1690,7 +1681,6 @@ window.addEventListener('hashchange',handleHash);
 
 /* ---------- Démarrage ---------- */
 document.querySelectorAll('.chev').forEach(function(c){ if(!c.innerHTML) c.innerHTML=ico('chev'); });
-$('#icoGear').innerHTML=ico('gear');
 applyUi(); setTab('solo'); showMenu(); updateStartBtn(); handleHash();
 })();
 
