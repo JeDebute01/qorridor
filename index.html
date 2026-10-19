@@ -355,6 +355,29 @@ body:not(.onmenu) .bgfx{background:
 .wall.wh .wlife{right:-1.85cqw;top:50%;transform:translateY(-50%)}
 .wall:not(.wh) .wlife{top:-1.85cqw;left:50%;transform:translateX(-50%)}
 .wall .wlife.low{background:var(--danger);border-color:var(--danger);color:#fff}
+
+/* Boutique de bonus */
+.coin{display:inline-block;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffe9a3,#e8a92a 70%);box-shadow:0 0 0 1px rgba(0,0,0,.25),0 0 8px rgba(232,169,42,.45);flex:none}
+.coins{display:inline-flex;align-items:center;gap:5px;margin-left:8px}
+.coins b{font-size:14px}
+.shop{margin-top:12px;padding:12px 14px 10px;border-radius:16px;background:color-mix(in srgb,var(--panel) 82%,transparent);border:1px solid var(--panel-line);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);display:flex;flex-direction:column;gap:10px;box-shadow:0 18px 44px -26px rgba(0,0,0,.7)}
+.shophead{display:flex;align-items:center;justify-content:space-between;font-family:'Bricolage Grotesque','DM Sans',system-ui,sans-serif;font-size:16px}
+.shopbal{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-ui)}
+.shopgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.bonus{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;padding:10px 12px;border-radius:12px;border:1px solid var(--panel-line);background:color-mix(in srgb,var(--card) 70%,transparent);color:var(--text);cursor:pointer;transition:border-color .12s,background .12s,transform .12s}
+.bonus:hover:not(:disabled){border-color:#e8a92a;transform:translateY(-1px)}
+.bonus:disabled{opacity:.4;cursor:not-allowed}
+.bonus.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 16%,var(--panel))}
+.bn{font-weight:600;font-size:13px}
+.bd{font-size:11.5px;color:var(--muted);line-height:1.3;flex:1}
+.bp{display:inline-flex;align-items:center;gap:5px;font-weight:700;font-size:13px;margin-top:2px}
+.wall.pry{outline:2px solid #e8a92a;outline-offset:2px;box-shadow:0 0 14px #e8a92a}
+@media (max-width:700px){.shopgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.panel .shop{margin-top:0;padding:10px;border-radius:14px;box-shadow:none;background:color-mix(in srgb,var(--card) 70%,transparent);gap:8px}
+.panel .shopgrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.panel .bonus{padding:8px 10px}
+.panel .shop .hint{font-size:11.5px}
 </style>
 
 <div class="bgfx" aria-hidden="true"><i class="bw b1"></i><i class="bw b2"></i><i class="bw b3"></i><i class="bw b4"></i></div>
@@ -415,6 +438,10 @@ body:not(.onmenu) .bgfx{background:
       <div class="fld"><span class="fl">Variante</span>
         <div class="seg" data-key="variant"><button type="button" data-v="classic">Classique</button><button type="button" data-v="ephemeral">Murs éphémères</button><button type="button" data-v="fog">Brouillard</button></div>
         <p class="hint" id="variantHint"></p>
+      </div>
+      <div class="fld"><span class="fl">Boutique de bonus</span>
+        <div class="seg" data-key="shop"><button type="button" data-v="off">Non</button><button type="button" data-v="on">Oui</button></div>
+        <p class="hint" id="shopMenuHint"></p>
       </div>
       <div class="fld" id="fldLife"><span class="fl"><span>Durée d'une barricade</span><b id="cfgLifeVal">10</b></span>
         <input type="range" id="cfgLife" min="4" max="30" step="1" value="10" aria-label="Durée d'une barricade en demi-coups">
@@ -494,8 +521,19 @@ body:not(.onmenu) .bgfx{background:
     </section>
 
     <section class="players">
-      <div class="pl" id="pl0"><div class="pn"></div><div class="pm"><i class="chip r"></i><span>Barricades :</span><b data-left>10</b><span data-of>/10</span></div><div class="pc">5:00</div></div>
-      <div class="pl" id="pl1"><div class="pn"></div><div class="pm"><i class="chip b"></i><span>Barricades :</span><b data-left>10</b><span data-of>/10</span></div><div class="pc">5:00</div></div>
+      <div class="pl" id="pl0"><div class="pn"></div><div class="pm"><i class="chip r"></i><span>Barricades :</span><b data-left>10</b><span data-of>/10</span><span class="coins" data-coins hidden><i class="coin"></i><b>0</b></span></div><div class="pc">5:00</div></div>
+      <div class="pl" id="pl1"><div class="pn"></div><div class="pm"><i class="chip b"></i><span>Barricades :</span><b data-left>10</b><span data-of>/10</span><span class="coins" data-coins hidden><i class="coin"></i><b>0</b></span></div><div class="pc">5:00</div></div>
+    </section>
+
+    <section class="shop" id="shop" aria-label="Boutique de bonus" hidden>
+      <div class="shophead"><b>Boutique</b><span class="shopbal"><i class="coin"></i><b id="shopCoins">0</b></span></div>
+      <div class="shopgrid">
+        <button type="button" class="bonus" data-k="wall"><span class="bn">Barricade en plus</span><span class="bd">+1 barricade</span><span class="bp"><i class="coin"></i>3</span></button>
+        <button type="button" class="bonus" data-k="dbl"><span class="bn">Double pas</span><span class="bd">2 cases ce tour</span><span class="bp"><i class="coin"></i>4</span></button>
+        <button type="button" class="bonus" data-k="pry"><span class="bn">Pied-de-biche</span><span class="bd">Retire un mur adverse</span><span class="bp"><i class="coin"></i>5</span></button>
+        <button type="button" class="bonus" data-k="fog"><span class="bn">Brouillard</span><span class="bd">Ton pion se cache (en ligne)</span><span class="bp"><i class="coin"></i>3</span></button>
+      </div>
+      <p class="hint" id="shopHint"></p>
     </section>
 
     <section class="blk">
@@ -693,7 +731,9 @@ var MODE_HINT={
 };
 var LOBBY_TTL=30*60*1000;
 var ui={hints:true,preview:true,path:false,coords:true,flip:false,anim:true,sound:true,skin:'ardoise',drag:false,chat:false};
-var cfg={opp:'medium',side:'blue',time:'5+3',mode:'casual',n:9,walls:10,variant:'classic',life:10};
+var cfg={opp:'medium',side:'blue',time:'5+3',mode:'casual',n:9,walls:10,variant:'classic',life:10,shop:'off'};
+var BONUS={wall:{name:'Barricade en plus',cost:3,desc:'+1 barricade dans ta réserve.'},dbl:{name:'Double pas',cost:4,desc:'Ce tour, ton pion va 2 cases plus loin.'},pry:{name:'Pied-de-biche',cost:5,desc:'Retire une barricade adverse.'},fog:{name:'Brouillard',cost:3,desc:"Ton pion disparaît pendant 3 tours de l'adversaire (en ligne)."}};
+var START_COINS=2,pryMode=false;
 var sel=null,G=null,aiToken=0,resignArmed=false,resignTimer=null,menuArmed=false,menuTimer=null,toastTimer=null,drag=null,menuTab='solo';
 var notice='',onl=null;
 
@@ -725,7 +765,8 @@ function makeGame(c,force){
   return {n:n,p:[{x:mid,y:0},{x:mid,y:n-1}],left:[c.walls,c.walls],hw:new Uint8Array(n*n),vw:new Uint8Array(n*n),turn:0,
     walls:[],ply:0,hist:[],wallCap:c.walls,mode:c.mode,variant:variant,life:c.life,opp:c.opp,human:human,
     tkey:tp.k,base:base,inc:tp.i*1000,clock:[base||Infinity,base||Infinity],running:false,last:0,over:null,
-    names:names,chat:[],thinking:false,pv:null,legal:new Set(),endHidden:false,online:null,auth:null,turnStart:0};
+    names:names,chat:[],thinking:false,pv:null,legal:new Set(),endHidden:false,online:null,auth:null,turnStart:0,
+    shop:c.shop==='on',coins:[START_COINS,START_COINS],dbl:[false,false],cloak:[0,0],bought:false};
 }
 function showMenu(){ document.body.classList.add('onmenu'); menuEl.hidden=false; appEl.hidden=true; window.scrollTo(0,0); if(menuTab==='online') renderOnlinePanel(); }
 function showApp(){ document.body.classList.remove('onmenu'); menuEl.hidden=true; appEl.hidden=false; window.scrollTo(0,0); }
@@ -739,7 +780,7 @@ function startSolo(){
 }
 function loadExample(){
   aiToken++; resetResign(); leaveSubs();
-  cfg.opp='medium'; cfg.side='blue'; cfg.time='5+3'; cfg.mode='casual'; cfg.n=9; cfg.walls=10; cfg.variant='classic';
+  cfg.opp='medium'; cfg.side='blue'; cfg.time='5+3'; cfg.mode='casual'; cfg.n=9; cfg.walls=10; cfg.variant='classic'; cfg.shop='off';
   ui.flip=false; syncCfg();
   var g=makeGame(cfg,{human:1});
   g.names=['anon-6007','anon-94640'];
@@ -780,6 +821,43 @@ function expireWalls(g){
   var keep=g.walls.filter(function(w){ return w.born===undefined||w.born+g.life-g.ply>0; });
   if(keep.length!==g.walls.length){ g.walls=keep; rebuildGrid(g,keep); }
 }
+/* Cases atteignables : déplacement normal, ou jusqu'à 2 déplacements avec le bonus Double pas. */
+function moveSet(g,p){
+  var base=pawnMoves(g,p);
+  if(!(g.dbl&&g.dbl[p])) return base;
+  var seen={},out=[],n=g.n,me=g.p[p],ox=me.x,oy=me.y;
+  function add(m){ var k=m[1]*n+m[0]; if(seen[k]||(m[0]===ox&&m[1]===oy)) return; seen[k]=1; out.push(m); }
+  base.forEach(add);
+  base.forEach(function(m){ me.x=m[0]; me.y=m[1]; pawnMoves(g,p).forEach(add); });
+  me.x=ox; me.y=oy;
+  return out;
+}
+function isAdverseWall(g,w,p){ return w.born!==undefined&&(w.born%2)!==p; }
+function bonusError(g,p,r){
+  var b=BONUS[r.k];
+  if(!g.shop||!b) return 'Boutique indisponible';
+  if(g.over) return 'Partie terminée';
+  if(g.bought) return 'Un seul achat par tour';
+  if(g.coins[p]<b.cost) return 'Pas assez de pièces';
+  if(r.k==='dbl'&&g.dbl[p]) return 'Déjà actif';
+  if(r.k==='fog'&&!g.online) return 'Brouillard : parties en ligne uniquement';
+  if(r.k==='fog'&&g.cloak[p]>0) return 'Déjà actif';
+  if(r.k==='pry'){
+    var ok=g.walls.some(function(w){ return w.o===r.o&&w.x===(r.x|0)&&w.y===(r.y|0)&&isAdverseWall(g,w,p); });
+    if(!ok) return 'Choisis une barricade adverse';
+  }
+  return null;
+}
+function applyBonus(g,p,r){
+  g.coins[p]-=BONUS[r.k].cost; g.bought=true;
+  if(r.k==='wall') g.left[p]++;
+  else if(r.k==='dbl') g.dbl[p]=true;
+  else if(r.k==='fog') g.cloak[p]=6;
+  else if(r.k==='pry'){
+    g.walls=g.walls.filter(function(w){ return !(w.o===r.o&&w.x===(r.x|0)&&w.y===(r.y|0)); });
+    rebuildGrid(g,g.walls);
+  }
+}
 /* Applique un coup à l'état (sans effets de bord) et renvoie le gagnant ou -1. */
 function applyPlay(g,mv,used){
   var p=g.turn;
@@ -795,6 +873,11 @@ function applyPlay(g,mv,used){
     if(!g.running){ g.running=true; g.last=performance.now(); }
   }
   expireWalls(g);
+  if(g.shop){
+    g.coins[p]+=1+((dist(g,p)>dist(g,1-p))?1:0);
+    g.dbl=[false,false]; g.bought=false;
+    g.cloak=[Math.max(0,g.cloak[0]-1),Math.max(0,g.cloak[1]-1)];
+  }
   return winner(g);
 }
 function play(mv){
@@ -891,6 +974,7 @@ function wallBox(o,x,y){
 function setBox(el,b){ el.style.left=U(b.l); el.style.top=U(b.t); el.style.width=U(b.w); el.style.height=U(b.h); }
 function fogHidden(i){
   var g=G;
+  if(g.cloak&&g.cloak[i]>0&&g.online&&!g.over&&g.human>=0&&i!==g.human) return true;
   if(g.variant!=='fog'||g.opp==='human'||g.over||g.human<0||i===g.human) return false;
   return Math.abs(g.p[0].x-g.p[1].x)+Math.abs(g.p[0].y-g.p[1].y)>3;
 }
@@ -923,6 +1007,8 @@ function renderWalls(){
       var ob=el.querySelector('.wlife'); if(ob) ob.remove();
     }
   });
+  var who=seat(g);
+  g.walls.forEach(function(w){ var el=wallEls.get(w.o+w.x+','+w.y); if(el) el.classList.toggle('pry',pryMode&&isAdverseWall(g,w,who)); });
   wallEls.forEach(function(el,k){ if(!keep[k]){ el.remove(); wallEls.delete(k); } });
 }
 function renderDots(){
@@ -950,9 +1036,9 @@ function drawPreview(){
 function render(){
   var g=G,n=g.n;
   g.legal=new Set();
-  if(myTurn()){ pawnMoves(g,g.turn).forEach(function(m){ g.legal.add(m[1]*n+m[0]); }); }
+  if(myTurn()){ moveSet(g,g.turn).forEach(function(m){ g.legal.add(m[1]*n+m[0]); }); }
   for(var i=0;i<cells.length;i++) cells[i].classList.toggle('legal',ui.hints&&g.legal.has(i));
-  placePawns(); renderWalls(); renderDots(); drawPreview(); renderPanel();
+  placePawns(); renderWalls(); renderDots(); drawPreview(); renderPanel(); renderShop();
 }
 
 /* ---------- Pointeur : localisation d'une case ou d'une rainure ---------- */
@@ -974,6 +1060,18 @@ board.addEventListener('pointerdown',function(e){
   if(!G||(e.pointerType==='mouse'&&e.button!==0)) return;
   ensureAudio();
   if(!myTurn()) return;
+  if(pryMode){
+    var who=seat(G),best=null,bd=1e9;
+    G.walls.forEach(function(w){
+      if(!isAdverseWall(G,w,who)) return;
+      var el=wallEls.get(w.o+w.x+','+w.y); if(!el) return;
+      var r=el.getBoundingClientRect(),dx=Math.max(r.left-e.clientX,0,e.clientX-r.right),dy=Math.max(r.top-e.clientY,0,e.clientY-r.bottom),d=Math.hypot(dx,dy);
+      if(d<bd){ bd=d; best=w; }
+    });
+    if(best&&bd<18){ pryMode=false; commitBonus({k:'pry',o:best.o,x:best.x,y:best.y}); }
+    else toast('Clique sur une barricade adverse.');
+    return;
+  }
   if(sel&&G.left[G.turn]>0){
     var hs=locate(e,sel); if(!hs) return;
     var es=wallError(hs.o,hs.x,hs.y);
@@ -1030,7 +1128,7 @@ function endDrag(e,cancel){
   drag.ghost.remove(); drag=null;
   if(!G) return;
   G.pv=null;
-  if(clicked){ sel=(sel===o)?null:o; render(); return; }
+  if(clicked){ pryMode=false; sel=(sel===o)?null:o; render(); return; }
   if(h){ var err=wallError(o,h.x,h.y); if(err){ toast(err); drawPreview(); } else { play({t:'w',o:o,x:h.x,y:h.y}); } }
   else drawPreview();
 }
@@ -1067,6 +1165,51 @@ function renderHist(){
   });
   box.scrollTop=box.scrollHeight;
 }
+function commitBonus(r){
+  var g=G; if(!g||!myTurn()) return;
+  var p=g.turn,err=bonusError(g,p,r);
+  if(err){ toast(err); return; }
+  applyBonus(g,p,r); sel=null; pryMode=false;
+  if(g.online) pushBonus(g,r);
+  sfx('step'); toast(BONUS[r.k].name+' acheté'); render();
+}
+function buyClick(k){
+  var g=G; if(!g||!g.shop||!myTurn()) return;
+  if(k==='pry'){
+    if(pryMode){ pryMode=false; render(); return; }
+    var p=g.turn,adv=g.walls.filter(function(w){ return isAdverseWall(g,w,p); });
+    if(!adv.length){ toast('Aucune barricade adverse à retirer'); return; }
+    var err=bonusError(g,p,{k:'pry',o:adv[0].o,x:adv[0].x,y:adv[0].y});
+    if(err){ toast(err); return; }
+    sel=null; pryMode=true; render(); toast('Clique sur une barricade adverse.'); return;
+  }
+  commitBonus({k:k});
+}
+function renderShop(){
+  var g=G,el=$('#shop'); el.hidden=!g.shop;
+  if(!g.shop){ pryMode=false; return; }
+  var who=seat(g),mine=myTurn(); if(!mine) pryMode=false;
+  $('#shopCoins').textContent=g.coins[who];
+  el.querySelectorAll('.bonus').forEach(function(b){
+    var k=b.dataset.k,c=BONUS[k].cost,why='';
+    if(!mine) why='Ce n\'est pas ton tour';
+    else if(g.bought) why='Un seul achat par tour';
+    else if(g.coins[who]<c) why='Pas assez de pièces';
+    else if(k==='dbl'&&g.dbl[who]) why='Déjà actif';
+    else if(k==='fog'&&!g.online) why='Parties en ligne uniquement';
+    else if(k==='fog'&&g.cloak[who]>0) why='Déjà actif';
+    else if(k==='pry'&&!g.walls.some(function(w){ return isAdverseWall(g,w,who); })) why='Aucune barricade adverse';
+    b.disabled=!!why;
+    b.title=BONUS[k].desc+(why?' ('+why+')':'');
+    b.classList.toggle('on',(k==='pry'&&pryMode)||(k==='dbl'&&g.dbl[who])||(k==='fog'&&g.cloak[who]>0));
+  });
+  var h;
+  if(pryMode) h='Clique sur une barricade adverse pour la retirer. Échap pour annuler.';
+  else if(g.dbl[who]&&mine) h='Double pas actif : tu peux aller 2 cases plus loin.';
+  else if(g.bought&&mine) h='Achat fait : joue ton coup.';
+  else h='1 pièce par coup joué, +1 si tu es en retard dans la course. Un achat par tour.';
+  $('#shopHint').textContent=h;
+}
 function renderTray(){
   var g=G,who=seat(g),ok=trayOk();
   if(!ok) sel=null;
@@ -1096,6 +1239,7 @@ function renderPanel(){
     $('.pn',el).textContent=g.names[i]+((g.opp!=='human'&&i===g.human)?' (toi)':'');
     $('[data-left]',el).textContent=g.left[i];
     $('[data-of]',el).textContent='/'+g.wallCap;
+    var ce=$('[data-coins]',el); ce.hidden=!g.shop; $('b',ce).textContent=g.coins[i];
   }
   updateClocks();
   var waiting=!!(o&&o.status==='waiting'&&!g.over);
@@ -1144,7 +1288,7 @@ $('#endClose').addEventListener('click',function(){ G.endHidden=true; renderPane
 $('#waitCancel').addEventListener('click',leaveToMenu);
 document.addEventListener('keydown',function(e){
   if(e.target&&e.target.closest&&e.target.closest('input,textarea,select')) return;
-  if(e.key==='Escape'&&sel){ sel=null; if(G){ G.pv=null; render(); } }
+  if(e.key==='Escape'&&(sel||pryMode)){ sel=null; pryMode=false; if(G){ G.pv=null; render(); } }
 });
 
 /* ---------- Toast ---------- */
@@ -1234,6 +1378,7 @@ function syncCfg(){
   var solo=menuTab==='solo',noHuman=solo&&cfg.opp==='human';
   document.querySelectorAll('.seg[data-key]:not([data-scope])').forEach(function(s){ markSeg(s,cfg[s.dataset.key]); });
   if(noHuman&&cfg.variant==='fog') cfg.variant='classic';
+  $('#shopMenuHint').textContent=cfg.shop==='on'?"Tu gagnes des pièces à chaque coup et tu achètes des bonus pendant la partie. L'IA n'achète pas.":'';
   $('#fldSide').hidden=noHuman;
   document.querySelector('.seg[data-key="variant"] button[data-v="fog"]').disabled=noHuman;
   markSeg(document.querySelector('.seg[data-key="variant"]'),cfg.variant);
@@ -1283,6 +1428,7 @@ document.querySelectorAll('.collapse[aria-controls]').forEach(function(h){
 $('#icoGear').addEventListener('click',function(){
   var h=$('#dispHead'); setOpen(h,true); h.scrollIntoView({block:'nearest',behavior:'smooth'});
 });
+document.querySelectorAll('#shop .bonus').forEach(function(b){ b.addEventListener('click',function(){ ensureAudio(); buyClick(b.dataset.k); }); });
 $('#btnStart').addEventListener('click',function(){ if(menuTab==='solo') startSolo(); else createOnline(); });
 $('#btnExample').addEventListener('click',function(){ ensureAudio(); loadExample(); });
 
@@ -1373,7 +1519,7 @@ function ingest(o,m){
     var c=m.cfg||{},n=[5,7,9,11].indexOf(+c.n)>=0?+c.n:9;
     var cf={n:n,walls:clampN((+c.walls)|0||10,2,20),time:TIME_PRESETS.some(function(t){return t.k===c.time;})?c.time:'5+3',
       mode:c.mode==='ranked'?'ranked':'casual',variant:(c.variant==='ephemeral'||c.variant==='fog')?c.variant:'classic',
-      life:clampN((+c.life)|0||10,4,30),opp:'online',side:'red'};
+      life:clampN((+c.life)|0||10,4,30),shop:c.shop==='on'?'on':'off',opp:'online',side:'red'};
     var ng=makeGame(cf,{human:-1});
     ng.online=o; ng.auth=[ng.clock[0],ng.clock[1]]; ng.turnStart=performance.now();
     o.g=ng; o.host=String(m.pid||'');
@@ -1402,8 +1548,15 @@ function ingest(o,m){
     if(o.status!=='playing'||g.over||m.i!==o.moves.length) return false;
     var s=seatOf(o,String(m.p||'')); if(s<0||s!==g.turn) return false;
     var r=m.r||{},mv,x=(+r.x)|0,y=(+r.y)|0;
+    if(r.t==='b'){
+      var rb={k:String(r.k),o:r.o,x:x,y:y};
+      if(bonusError(g,g.turn,rb)) return false;
+      applyBonus(g,g.turn,rb);
+      o.moves.push(rb.k==='pry'?{t:'b',k:rb.k,o:rb.o,x:x,y:y}:{t:'b',k:rb.k});
+      o.sfx='step'; o.note=S.players[s].name+' a acheté : '+BONUS[rb.k].name; return true;
+    }
     if(r.t==='m'){
-      if(!pawnMoves(g,g.turn).some(function(a){ return a[0]===x&&a[1]===y; })) return false;
+      if(!moveSet(g,g.turn).some(function(a){ return a[0]===x&&a[1]===y; })) return false;
       mv={t:'m',x:x,y:y};
     } else if(r.t==='w'&&(r.o==='h'||r.o==='v')){
       if(g.left[g.turn]<=0||!wallLegal(g,r.o,x,y)) return false;
@@ -1438,6 +1591,7 @@ function syncUi(o){
   if(o.prevStatus==='waiting'&&o.status==='playing') toast('La partie commence !');
   o.prevStatus=o.status;
   if(o.sfx){ sfx(o.sfx); o.sfx=''; }
+  if(o.note){ toast(o.note); o.note=''; }
   g.pv=null; renderChat(); render();
 }
 function connect(o){
@@ -1454,7 +1608,7 @@ function leaveSubs(){ if(onl){ if(onl.es) onl.es.close(); onl=null; } }
 async function createOnline(){
   ensureAudio(); notice='';
   var seat=cfg.side==='random'?(Math.random()<0.5?0:1):(cfg.side==='red'?0:1),gid=newGid();
-  var msg={k:'new',cfg:{n:cfg.n,walls:cfg.walls,time:cfg.time,mode:cfg.mode,variant:cfg.variant,life:cfg.life},seat:seat,pid:pid,name:myName(),t:Date.now()};
+  var msg={k:'new',cfg:{n:cfg.n,walls:cfg.walls,time:cfg.time,mode:cfg.mode,variant:cfg.variant,life:cfg.life,shop:cfg.shop},seat:seat,pid:pid,name:myName(),t:Date.now()};
   var b=$('#btnStart'); b.disabled=true; b.textContent='Création…';
   try{ await postRetry(gid,msg,3); }
   catch(e){ updateStartBtn(); notice='Impossible de joindre le relais en ligne ntfy.sh ('+((e&&e.message)||'erreur')+'). Réessaie dans un instant.'; renderOnlineMsg(); toast(notice); return; }
@@ -1494,6 +1648,12 @@ async function enterOnline(gid,wantJoin,first){
 function pushMove(g,mv,used,w){
   var o=g.online,rec={t:mv.t,x:mv.x,y:mv.y,u:used};
   if(mv.t==='w') rec.o=mv.o;
+  var i=o.moves.length; o.moves.push(rec);
+  post(o,{k:'mv',i:i,p:pid,r:rec});
+}
+function pushBonus(g,r){
+  var o=g.online,rec={t:'b',k:r.k};
+  if(r.k==='pry'){ rec.o=r.o; rec.x=r.x; rec.y=r.y; }
   var i=o.moves.length; o.moves.push(rec);
   post(o,{k:'mv',i:i,p:pid,r:rec});
 }
