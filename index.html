@@ -401,6 +401,16 @@ body:not(.onmenu) .bgfx{background:
 .lbrow .rk{font-family:'Bricolage Grotesque','DM Sans',system-ui,sans-serif;font-weight:800;font-size:16px;color:var(--muted)}
 .lbrow:nth-child(2) .rk{color:#e8a92a}.lbrow:nth-child(3) .rk{color:#c0c4cc}.lbrow:nth-child(4) .rk{color:#cd8b5a}
 @media (max-width:560px){.lbrow{grid-template-columns:34px minmax(0,1fr) 60px 56px;gap:6px;padding:9px 10px}.lbrow span:nth-child(5){display:none}}
+
+/* Fenêtre du pseudo */
+.nmodal{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(6,7,9,.66);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.nmbox{width:min(400px,100%);box-sizing:border-box;background:var(--panel);border:1px solid var(--panel-line);border-radius:20px;padding:24px;display:flex;flex-direction:column;gap:12px;box-shadow:0 30px 80px -20px rgba(0,0,0,.8)}
+.nmbox h2{margin:0;font-family:'Bricolage Grotesque','DM Sans',system-ui,sans-serif;font-size:26px;letter-spacing:-.02em}
+.nmbox p{margin:0;color:var(--muted);font-size:14px;line-height:1.5}
+.nmbox .shin{flex:none;font-family:var(--font-ui);font-size:16px;padding:12px 14px;border-radius:12px}
+.nmbox .nmmsg{color:#f87171;min-height:1.2em;font-size:13px}
+.nmbtns{display:flex;flex-direction:column;gap:8px}
+.nmbtns .btn{border-radius:12px;padding:12px}
 </style>
 
 <div class="bgfx" aria-hidden="true"><i class="bw b1"></i><i class="bw b2"></i><i class="bw b3"></i><i class="bw b4"></i></div>
@@ -614,7 +624,18 @@ body:not(.onmenu) .bgfx{background:
     </section>
   </aside>
 </div>
-
+<div class="nmodal" id="nickModal" hidden role="dialog" aria-modal="true" aria-labelledby="nmTitle">
+  <div class="nmbox">
+    <h2 id="nmTitle">Choisis ton pseudo</h2>
+    <p>Ton adversaire et le classement verront ce nom. Il est enregistré dans ton navigateur : tu n'auras pas à le retaper.</p>
+    <input class="shin" id="nmInput" type="text" maxlength="20" placeholder="Ton pseudo" autocomplete="nickname">
+    <p class="nmmsg" id="nmMsg" role="alert"></p>
+    <div class="nmbtns">
+      <button class="btn primary big" id="nmOk" type="button">Valider</button>
+      <button class="btn ghost" id="nmSkip" type="button">Continuer sans pseudo</button>
+    </div>
+  </div>
+</div>
 <script>
 'use strict';
 /* ===== Moteur : règles, chemins, IA (fonctions pures sur un état S) ===== */
@@ -1755,8 +1776,29 @@ function connect(o){
 }
 function leaveSubs(){ if(onl){ if(onl.es) onl.es.close(); onl=null; } }
 
+/* Fenêtre « Choisis ton pseudo » : proposée avant de créer ou rejoindre une partie en ligne. */
+var askedSkip=false,askPending=null;
+function askPseudo(){
+  if(customName()||askedSkip) return Promise.resolve();
+  if(askPending) return askPending;
+  var m=$('#nickModal'),inp=$('#nmInput'),msg=$('#nmMsg');
+  inp.value=''; msg.textContent=''; m.hidden=false;
+  setTimeout(function(){ inp.focus(); },30);
+  askPending=new Promise(function(resolve){
+    function close(){ m.hidden=true; askPending=null; $('#nmOk').onclick=$('#nmSkip').onclick=inp.onkeydown=null; resolve(); }
+    $('#nmOk').onclick=function(){
+      var v=(inp.value||'').trim().slice(0,20);
+      if(!nickOk(v)){ msg.textContent="Au moins 2 caractères, et pas « Joueur »."; inp.focus(); return; }
+      sset('qd_name',v); $('#nick').value=v; close();
+    };
+    $('#nmSkip').onclick=function(){ askedSkip=true; close(); };
+    inp.onkeydown=function(e){ if(e.key==='Enter') $('#nmOk').onclick(); else if(e.key==='Escape') $('#nmSkip').onclick(); };
+  });
+  return askPending;
+}
 async function createOnline(){
   ensureAudio(); notice='';
+  await askPseudo();
   var seat=cfg.side==='random'?(Math.random()<0.5?0:1):(cfg.side==='red'?0:1),gid=newGid();
   var msg={k:'new',cfg:{n:cfg.n,walls:cfg.walls,time:cfg.time,mode:cfg.mode,variant:cfg.variant,life:cfg.life,shop:cfg.shop},seat:seat,pid:pid,name:myName(),t:Date.now()};
   var b=$('#btnStart'); b.disabled=true; b.textContent='Création…';
@@ -1790,6 +1832,8 @@ async function enterOnline(gid,wantJoin,first){
   G=o.g; ui.flip=(o.me===0); ui.chat=true;
   enterApp(); connect(o);
   if(wantJoin&&o.me<0&&o.status==='waiting'){
+    await askPseudo();
+    if(onl!==o) return;
     try{ await postRetry(gid,{k:'join',pid:pid,name:myName()},3); }
     catch(e){ toast('Impossible de rejoindre : le relais ne répond pas.'); return; }
     setTimeout(function(){ if(onl===o&&o.me<0) toast('Cette partie est déjà complète : tu observes.'); },7000);
